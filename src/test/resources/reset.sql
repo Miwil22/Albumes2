@@ -1,0 +1,7 @@
+-- Limpiar tablas (orden inverso por las claves foráneas)
+DELETE FROM ALBUMES;
+DELETE FROM ARTISTAS;
+
+-- Reiniciar contadores de ID
+ALTER TABLE ALBUMES ALTER COLUMN id RESTART WITH 1;
+ALTER TABLE ARTISTAS ALTER COLUMN id RESTART WITH 1;

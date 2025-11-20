@@ -1,0 +1,132 @@
+### -------------------------------------------------------
+### API DE ARTISTAS
+### -------------------------------------------------------
+
+### Obtener todos los artistas
+GET http://localhost:3000/api/v1/artistas
+
+### Obtener artista por ID
+GET http://localhost:3000/api/v1/artistas/1
+
+### Crear un nuevo Artista (Necesario para crear sus álbumes después)
+POST http://localhost:3000/api/v1/artistas
+Content-Type: application/json
+
+{
+  "nombre": "Bad Bunny"
+}
+
+### Crear otro Artista
+POST http://localhost:3000/api/v1/artistas
+Content-Type: application/json
+
+{
+  "nombre": "Rosalia"
+}
+
+### Actualizar Artista
+PUT http://localhost:3000/api/v1/artistas/1
+Content-Type: application/json
+
+{
+  "nombre": "The Beatles (Remastered)"
+}
+
+### Borrar Artista (Fallará si tiene álbumes asociados, como The Beatles)
+DELETE http://localhost:3000/api/v1/artistas/1
+
+### Borrar Artista (Funcionará si está "vacío", como Rosalia)
+DELETE http://localhost:3000/api/v1/artistas/4
+
+
+### -------------------------------------------------------
+### API DE ÁLBUMES
+### -------------------------------------------------------
+
+### Obtener todos los álbumes
+GET http://localhost:3000/api/v1/albumes
+
+### Filtrar por nombre
+GET http://localhost:3000/api/v1/albumes?nombre=Abbey
+
+### Filtrar por nombre y artista
+GET http://localhost:3000/api/v1/albumes?nombre=Abbey&artista=Beatles
+
+### Filtrar solo por artista
+GET http://localhost:3000/api/v1/albumes?artista=Beatles
+
+### Obtener álbum por ID
+GET http://localhost:3000/api/v1/albumes/1
+
+### Obtener álbum por ID (No existente)
+GET http://localhost:3000/api/v1/albumes/99
+
+### Nuevo Álbum (OK)
+### ¡Importante! "Bad Bunny" debe existir en la tabla de Artistas (ver arriba)
+POST http://localhost:3000/api/v1/albumes
+Content-Type: application/json
+
+{
+  "nombre": "Un Verano Sin Ti",
+  "artista": "Bad Bunny",
+  "genero": "Pop",
+  "precio": 25.99
+}
+
+### Nuevo Álbum (Error - Artista no existe)
+POST http://localhost:3000/api/v1/albumes
+Content-Type: application/json
+
+{
+  "nombre": "Album Fantasma",
+  "artista": "Artista Desconocido",
+  "genero": "Rock",
+  "precio": 10.0
+}
+
+### Nuevo Álbum (Error de Validación - Género no válido)
+POST http://localhost:3000/api/v1/albumes
+Content-Type: application/json
+
+{
+  "nombre": "Test",
+  "artista": "The Beatles",
+  "genero": "Cumbia",
+  "precio": 10.0
+}
+
+### Nuevo Álbum (Error de Validación - Nombre vacío)
+POST http://localhost:3000/api/v1/albumes
+Content-Type: application/json
+
+{
+  "nombre": "",
+  "artista": "The Beatles",
+  "genero": "Rock",
+  "precio": 10.0
+}
+
+### Actualizar Álbum (PUT)
+### Nota: No enviamos el artista porque no se permite cambiarlo en el UpdateDto
+PUT http://localhost:3000/api/v1/albumes/1
+Content-Type: application/json
+
+{
+  "nombre": "Abbey Road (Deluxe Edition)",
+  "genero": "Rock",
+  "precio": 45.00
+}
+
+### Actualizar Parcialmente (PATCH)
+PATCH http://localhost:3000/api/v1/albumes/2
+Content-Type: application/json
+
+{
+  "precio": 15.50
+}
+
+### Borrar Álbum (OK)
+DELETE http://localhost:3000/api/v1/albumes/2
+
+### Borrar Álbum (No encontrado)
+DELETE http://localhost:3000/api/v1/albumes/99

@@ -1,0 +1,194 @@
+PARA PROBAR CON POSTMAN
+
+GET http://localhost:3000/api/v1/albumes
+
+
+POST http://localhost:3000/api/v1/artistas
+Content-Type: application/json
+
+{
+  "nombre": "Bad Bunny"
+}
+
+
+
+
+
+¡Claro que sí! Vamos a desglosar todo desde cero. Imagina que vamos a construir este proyecto juntos. No te agobies con
+ el código todavía, primero entiende qué estamos construyendo y por qué.
+
+Estamos creando una API REST para una tienda de música.
+
+API REST: Es como un camarero digital. Tú (el cliente) le pides cosas (datos) y él te las trae o las lleva a la cocina.
+
+Objetivo: Gestionar Álbumes y Artistas. Poder crearlos, leerlos, actualizarlos y borrarlos (CRUD).
+
+0. El Inicio: ¿Qué necesito para empezar?
+Antes de escribir una sola línea de código, necesitas los cimientos. En Java con Spring Boot, esto se hace en el archivo
+ pom.xml.
+
+📦 pom.xml (La lista de la compra)
+Aquí le dices a tu proyecto qué herramientas (librerías) vas a necesitar.
+
+Spring Web: Para crear el "camarero" (la API).
+
+Spring Data JPA: Para hablar con la base de datos sin saber SQL (la magia).
+
+H2 Database: Una base de datos pequeñita que vive en la memoria de tu PC (perfecta para aprender y testear).
+
+Lombok: Para no escribir código aburrido (Getters, Setters, Constructores) una y otra vez.
+
+Validation: Para asegurar que nadie meta un álbum con precio negativo o nombre vacío.
+
+En el examen: Si te preguntan "¿Qué dependencia hace falta para validar datos?", la respuesta es spring-boot-starter-validation.
+
+1. El Modelo de Datos (Los Planos)
+Lo primero que programamos es: ¿Qué datos voy a guardar? En tu proyecto tienes dos "cosas" principales: Album y Artista.
+
+🏛️ models/Artista.java y models/Album.java
+Son clases normales de Java, pero tienen superpoderes gracias a las anotaciones (las palabras que empiezan con @).
+
+@Entity: Le dice a Spring: "Crea una tabla en la base de datos para esta clase".
+
+@Id y @GeneratedValue: "Este campo es la clave primaria y quiero que te inventes tú los números (1, 2, 3...)".
+
+La Relación (@OneToMany / @ManyToOne):
+
+En Artista: @OneToMany -> Un artista tiene una lista de álbumes.
+
+En Album: @ManyToOne -> Muchos álbumes pertenecen a un artista.
+
+Esto crea una unión entre las dos tablas.
+
+2. El Repositorio (El Almacén)
+Ya tenemos las tablas. Ahora necesitamos alguien que sepa meter y sacar cosas de ahí.
+
+🗄️ repositories/AlbumRepository.java
+Es una Interfaz (una lista de tareas, no de código).
+
+extends JpaRepository<Album, Long>: Esta es la magia pura. Solo con escribir esto, Spring te regala métodos como:
+
+save() (Guardar)
+
+findAll() (Dame todo)
+
+findById() (Busca por ID)
+
+delete() (Borrar)
+
+Consultas personalizadas: Si los métodos regalados no te sirven, creas los tuyos.
+
+Ejemplo: findByNombreContainingIgnoreCase(String nombre) -> Spring traduce esto automáticamente a SQL: SELECT * FROM
+albumes WHERE UPPER(nombre) LIKE UPPER('%lo_que_buscas%').
+
+3. Los DTOs y Mappers (La Seguridad y Traducción)
+Regla de oro: NUNCA dejes que el mundo exterior toque tu base de datos directamente. Para eso usamos intermediarios.
+
+📦 dto/ (Data Transfer Object)
+Son cajas vacías para transportar datos.
+
+AlbumCreateDto: Solo tiene los datos necesarios para crear (nombre, precio, nombre del artista). No tiene ID ni fecha
+de creación, porque eso lo pone el sistema. Aquí ponemos las reglas: @NotBlank (no vacío), @Positive (precio positivo).
+
+AlbumResponseDto: Es lo que le enseñamos al usuario. Aquí sí va el ID y todo lo bonito.
+
+🔄 mappers/AlbumMapper.java
+Es el traductor.
+
+toAlbum(...): Coge el DTO que envía el usuario y lo convierte en una Entidad lista para guardarse en base de datos.
+
+toAlbumResponseDto(...): Coge la Entidad de la base de datos y la convierte en un DTO bonito para enviárselo al usuario.
+
+4. El Servicio (El Cerebro 🧠)
+Aquí es donde ocurre la lógica de negocio. El repositorio solo obedece órdenes, el servicio toma decisiones.
+
+⚙️ services/AlbumServiceImpl.java
+Vamos método por método:
+
+findAll(nombre, artista):
+
+¿Me han dado nombre y artista? -> Busco por los dos.
+
+¿Solo nombre? -> Busco por nombre.
+
+¿Nada? -> Devuelvo todos.
+
+Aquí es donde decides qué búsqueda usar del repositorio.
+
+findById(id):
+
+Llama al repositorio.
+
+¿No existe? -> Lanza una Excepción (AlbumNotFoundException). ¡Importante! El servicio decide cuándo hay un error.
+
+save(createDto) (Crear):
+
+Paso crítico: El DTO trae el nombre del artista (ej: "Bad Bunny"). El servicio llama a ArtistaService para buscar a ese
+ artista en la base de datos real.
+
+Si el artista no existe, explota (porque así lo programamos en ArtistaService).
+
+Si existe, crea el álbum, le asigna ese artista y lo guarda.
+
+deleteById(id):
+
+Primero comprueba si existe (findById). Si no, error.
+
+Luego lo borra.
+
+La Caché (@Cacheable, @CacheEvict): Sirve para que si pides el álbum ID 1 cinco veces, la primera va a la base de datos
+y las otras 4 te las da de memoria (más rápido).
+
+5. El Controlador (La Cara al Público)
+Es quien recibe las peticiones de internet (HTTP).
+
+🌐 controllers/AlbumRestController.java
+@RestController: Dice "Soy una API web".
+
+@RequestMapping: Define la dirección base (api/v1/albumes).
+
+Métodos principales:
+
+getAll (@GetMapping): Recibe parámetros de la URL (?nombre=...) y llama al servicio.
+
+create (@PostMapping): Recibe el JSON (@RequestBody), comprueba si cumple las reglas del DTO (@Valid) y llama al servicio
+ save.
+
+Si @Valid falla (ej: precio negativo), Spring lanza un error automáticamente.
+
+handleValidationExceptions: Es un método especial al final. Si @Valid falla, este método captura el error y devuelve un
+ mensaje bonito diciendo exactamente qué campo falló ("El precio no puede ser negativo").
+
+6. Los Tests (El Examen antes del Examen)
+Los tests aseguran que tu código hace lo que dices que hace.
+
+AlbumRepositoryTest: Arranca una base de datos de mentira, guarda un álbum y comprueba si findAll lo encuentra. (Prueba
+la conexión a BD).
+
+AlbumServiceImplTest: Aquí usamos Mocks (simulacros). No usamos la base de datos real. Le decimos al código: "Simula que
+ el repositorio devuelve este álbum cuando te pida el ID 1". Probamos la lógica (los if, las excepciones).
+
+AlbumRestControllerTest: Simula una petición HTTP real (como si usaras Postman) y comprueba que la API responde con el
+código correcto (200 OK, 404 Not Found, etc.).
+
+Resumen del Flujo (El camino del dato)
+Imagina que quieres crear un álbum:
+
+Cliente (Postman): Envía un JSON a POST /api/v1/albumes.
+
+Controlador (AlbumRestController): Recibe el JSON. Verifica @Valid. Si está bien, se lo pasa al Servicio.
+
+Servicio (AlbumServiceImpl):
+
+Recibe los datos.
+
+Llama a ArtistaService para ver si el artista existe.
+
+Usa AlbumMapper para convertir los datos en una entidad Album conectada con el Artista.
+
+Llama al repositorio.
+
+Repositorio (AlbumRepository): Genera el SQL (INSERT INTO...) y guarda en H2.
+
+De vuelta: El repositorio devuelve el álbum guardado -> Servicio lo convierte a DTO -> Controlador lo envía como JSON
+al cliente con un código 201 Created.
