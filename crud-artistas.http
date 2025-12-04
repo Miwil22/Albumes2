@@ -1,0 +1,41 @@
+### -------------------------------------------------------
+### API DE ARTISTAS
+### -------------------------------------------------------
+
+### Obtener todos los artistas
+GET http://localhost:3000/api/v1/artistas
+
+### Obtener artista por ID
+GET http://localhost:3000/api/v1/artistas/1
+
+### Crear un nuevo Artista (Necesario para crear sus álbumes después)
+POST http://localhost:3000/api/v1/artistas
+Content-Type: application/json
+
+{
+  "nombre": "Bad Bunny"
+}
+
+### Crear otro Artista
+POST http://localhost:3000/api/v1/artistas
+Content-Type: application/json
+
+{
+  "nombre": "Rosalia"
+}
+
+### Actualizar Artista
+PUT http://localhost:3000/api/v1/artistas/1
+Content-Type: application/json
+
+{
+  "nombre": "The Beatles (Remastered)"
+}
+
+### Borrar Artista (Fallará si tiene álbumes asociados, como The Beatles)
+DELETE http://localhost:3000/api/v1/artistas/1
+
+### Borrar Artista (Funcionará si está "vacío", como Rosalia)
+DELETE http://localhost:3000/api/v1/artistas/4
+
+

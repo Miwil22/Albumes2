@@ -1,3 +1,7 @@
+INSERT INTO ARTISTAS (nombre)
+VALUES ('Pink Floyd'), ('The Ramones'), ('Bring Me The Horizon');
+
+
 INSERT INTO ARTISTAS (nombre, created_at, updated_at) VALUES
 ('The Beatles', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 ('Michael Jackson', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
