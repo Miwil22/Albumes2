@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.config.websockets.WebSocketConfig;
 import org.example.config.websockets.WebSocketHandler;
+import org.example.websockets.notifications.dto.AlbumNotificationResponse;
+import org.example.websockets.notifications.mappers.AlbumNotificationMapper;
 import org.example.websockets.notifications.models.Notificacion;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.CacheConfig;
@@ -39,8 +41,8 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
 
     private final WebSocketConfig webSocketConfig;
     private final ObjectMapper objectMapper;
-    private final AlbumesNotificationMapper albumesNotificationMapper;
-    private WebSocketHandler webSocketHandler;
+    private final AlbumNotificationMapper albumNotificationMapper;
+    private WebSocketHandler webSocketService;
 
     @Override
     public void afterPropertiesSet(){
@@ -102,6 +104,8 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         // 2. Mapeamos el DTO a Entidad pasando el objeto Artista completo
         Album nuevoAlbum = albumMapper.toAlbum(createDto, artista);
 
+        Album albumSaved = albumRepository.save(nuevoAlbum);
+
         // Notificacion WS
         onChange(Notificacion.Tipo.CREATE, albumSaved);
 
@@ -117,7 +121,7 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
                 .orElseThrow(() -> new AlbumNotFoundException(id));
 
         // Actualizamos los datos
-        Album albumActualizado = AlbumRepository.save(albumMapper.toAlbum(updateDto, albumActual));
+        Album albumActualizado = albumRepository.save(albumMapper.toAlbum(updateDto, albumActual));
 
         // Notificacion WS
         onChange(Notificacion.Tipo.UPDATE, albumActualizado);
@@ -131,6 +135,7 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         log.debug("Borrando álbum por id: {}", id);
         var albumDeleted = albumRepository.findById(id)
                         .orElseThrow(() -> new AlbumNotFoundException(id));
+        albumRepository.deleteById(id);
         onChange(Notificacion.Tipo.DELETE, albumDeleted);
     }
 
@@ -144,7 +149,7 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         }
 
         try {
-            Notificacion<AlbumNotificacionResponse> notificacion = new Notificacion<>(
+            Notificacion<AlbumNotificationResponse> notificacion = new Notificacion<>(
                     "ALBUMES",
                     tipo,
                     albumNotificationMapper.toAlbumNotificationDto(data),

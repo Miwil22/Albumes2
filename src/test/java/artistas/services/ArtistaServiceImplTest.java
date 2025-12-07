@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,6 +23,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ArtistaServiceImplTest {
+
+    private final Artista artista = Artista.builder().id(1L).nombre("Queen").build();
+    private final ArtistaRequestDto artistaDto = ArtistaRequestDto.builder().nombre("Queen").build();
 
     @Mock
     private ArtistaRepository artistaRepository;
@@ -33,40 +37,82 @@ class ArtistaServiceImplTest {
     private ArtistaServiceImpl artistaService;
 
     @Test
+    public void testFindAll() {
+        when(artistaRepository.findAll()).thenReturn(List.of(artista));
+        var res = artistaService.findAll(null);
+        assertAll("findAll",
+                () -> assertNotNull(res),
+                () -> assertFalse(res.isEmpty())
+        );
+        verify(artistaRepository, times(1)).findAll();
+    }
+
+    @Test
+    public void testFindByNombre() {
+        when(artistaRepository.findByNombreEqualsIgnoreCase(anyString())).thenReturn(Optional.of(artista));
+        var res = artistaService.findByNombre("Queen");
+        assertEquals("Queen", res.getNombre());
+    }
+
+    @Test
+    public void testFindById() {
+        when(artistaRepository.findById(anyLong())).thenReturn(Optional.of(artista));
+        var res = artistaService.findById(1L);
+        assertEquals("Queen", res.getNombre());
+    }
+
+    @Test
     void save_ShouldSaveArtista(){
-        ArtistaRequestDto dto = ArtistaRequestDto.builder().nombre("Queen").build();
-        Artista saved = Artista.builder().id(1L).nombre("Queen").build();
-
         when(artistaRepository.findByNombreEqualsIgnoreCase("Queen")).thenReturn(Optional.empty());
-        when(artistaRepository.save(any(Artista.class))).thenReturn(saved);
+        when(artistaRepository.save(any(Artista.class))).thenReturn(artista);
 
-        Artista result = artistaService.save(dto);
+        Artista result = artistaService.save(artistaDto);
 
         assertEquals("Queen", result.getNombre());
+        verify(artistaRepository).save(any(Artista.class));
     }
 
     @Test
     void save_ShouldThrowConflict_IfExists(){
-        ArtistaRequestDto dto = ArtistaRequestDto.builder().nombre("Queen").build();
-        Artista existing = Artista.builder().id(1L).nombre("Queen").build();
-
-        when(artistaRepository.findByNombreEqualsIgnoreCase("Queen")).thenReturn(Optional.of(existing));
-
-        assertThrows(ArtistaConflictException.class, () -> artistaService.save(dto));
+        when(artistaRepository.findByNombreEqualsIgnoreCase("Queen")).thenReturn(Optional.of(artista));
+        assertThrows(ArtistaConflictException.class, () -> artistaService.save(artistaDto));
+        verify(artistaRepository, never()).save(any(Artista.class));
     }
 
     @Test
-    void findById_NotFount(){
-        when(artistaRepository.findById(99L)).thenReturn(Optional.empty());
-        assertThrows(ArtistaNotFoundException.class, () -> artistaService.findById(99L));
+    public void testUpdate() {
+        when(artistaRepository.findById(anyLong())).thenReturn(Optional.of(artista));
+        when(artistaRepository.findByNombreEqualsIgnoreCase(anyString())).thenReturn(Optional.of(artista)); // Mismo nombre, mismo ID
+        when(artistaRepository.save(any(Artista.class))).thenReturn(artista);
+
+        var res = artistaService.update(1L, artistaDto);
+        assertEquals("Queen", res.getNombre());
+    }
+
+    @Test
+    public void testUpdateConflict() {
+        Artista otroArtista = Artista.builder().id(2L).nombre("Queen").build();
+        when(artistaRepository.findById(anyLong())).thenReturn(Optional.of(artista));
+        when(artistaRepository.findByNombreEqualsIgnoreCase(anyString())).thenReturn(Optional.of(otroArtista)); // Existe otro con ese nombre
+
+        assertThrows(ArtistaConflictException.class, () -> artistaService.update(1L, artistaDto));
+    }
+
+    @Test
+    void delete_ShouldDelete_IfNoAlbums(){
+        when(artistaRepository.findById(1L)).thenReturn(Optional.of(artista));
+        when(artistaRepository.existsAlbumById(1L)).thenReturn(false);
+
+        artistaService.deleteById(1L);
+        verify(artistaRepository).deleteById(1L);
     }
 
     @Test
     void delete_ShouldThrowConflict_IfHasAlbums(){
-    when(artistaRepository.findById(1L)).thenReturn(Optional.of(Artista.builder().id(1L).build()));
-    when(artistaRepository.existsAlbumById(1L)).thenReturn(true);
+        when(artistaRepository.findById(1L)).thenReturn(Optional.of(artista));
+        when(artistaRepository.existsAlbumById(1L)).thenReturn(true);
 
-    assertThrows(ArtistaConflictException.class, () -> artistaService.deleteById(1L));
+        assertThrows(ArtistaConflictException.class, () -> artistaService.deleteById(1L));
+        verify(artistaRepository, never()).deleteById(anyLong());
     }
-
 }
