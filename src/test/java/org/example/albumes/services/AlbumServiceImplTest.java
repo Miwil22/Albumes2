@@ -1,4 +1,4 @@
-package albumes.services;
+package org.example.albumes.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.albumes.dto.AlbumCreateDto;
@@ -9,6 +9,7 @@ import org.example.albumes.exceptions.AlbumNotFoundException;
 import org.example.albumes.mappers.AlbumMapper;
 import org.example.albumes.models.Album;
 import org.example.albumes.repositories.AlbumRepository;
+import org.example.albumes.services.AlbumServiceImpl;
 import org.example.artistas.models.Artista;
 import org.example.artistas.services.ArtistaService;
 import org.example.config.websockets.WebSocketConfig;

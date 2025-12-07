@@ -1,4 +1,4 @@
-package artistas.repositories;
+package org.example.artistas.repositories;
 
 import org.example.Application;
 import org.example.artistas.models.Artista;

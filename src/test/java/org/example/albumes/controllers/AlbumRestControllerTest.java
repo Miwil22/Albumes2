@@ -1,4 +1,4 @@
-package albumes.controllers;
+package org.example.albumes.controllers;
 
 import org.example.Application;
 import org.example.albumes.dto.AlbumCreateDto;

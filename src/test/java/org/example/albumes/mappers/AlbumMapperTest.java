@@ -1,4 +1,4 @@
-package albumes.mappers;
+package org.example.albumes.mappers;
 
 import org.example.albumes.dto.AlbumCreateDto;
 import org.example.albumes.dto.AlbumUpdateDto;

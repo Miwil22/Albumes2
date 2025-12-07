@@ -1,4 +1,4 @@
-package artistas.services;
+package org.example.artistas.services;
 
 import org.example.artistas.dto.ArtistaRequestDto;
 import org.example.artistas.exceptions.ArtistaConflictException;

@@ -1,4 +1,4 @@
-package albumes.repositories;
+package org.example.albumes.repositories;
 
 import org.example.Application;
 import org.example.albumes.models.Album;

@@ -1,4 +1,4 @@
-package artistas.controllers;
+package org.example.artistas.controllers;
 
 import org.example.Application;
 import org.example.artistas.dto.ArtistaRequestDto;

@@ -1,4 +1,4 @@
-package artistas.mapper;
+package org.example.artistas.mapper;
 
 import org.example.artistas.dto.ArtistaRequestDto;
 import org.example.artistas.mappers.ArtistaMapper;
