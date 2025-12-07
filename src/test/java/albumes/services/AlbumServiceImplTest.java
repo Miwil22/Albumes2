@@ -1,4 +1,4 @@
-package org.example.albumes.services;
+package albumes.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.albumes.dto.AlbumCreateDto;

@@ -134,7 +134,8 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     public void deleteById(Long id) {
         log.debug("Borrando álbum por id: {}", id);
         var albumDeleted = albumRepository.findById(id)
-                        .orElseThrow(() -> new AlbumNotFoundException(id));
+                .orElseThrow(() -> new AlbumNotFoundException(id));
+
         albumRepository.deleteById(id);
         onChange(Notificacion.Tipo.DELETE, albumDeleted);
     }

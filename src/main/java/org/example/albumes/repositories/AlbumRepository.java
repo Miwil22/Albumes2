@@ -13,26 +13,23 @@ import java.util.UUID;
 @Repository
 public interface AlbumRepository extends JpaRepository<Album, Long> {
 
-    // Buscar por nombre (Usamos Containing para búsquedas parciales, igual que Tarjetas usa para Titular)
+    // Buscar por nombre (Usamos Containing para búsquedas parciales)
     List<Album> findByNombreContainingIgnoreCase(String nombre);
-
     // Buscar por nombre del artista (Navegamos por la relación: artista.nombre)
-    @Query("SELECT a FROM Album a WHERE LOWER(a.artista.nombre) LIKE LOWER(CONCAT('%', :artista, '%'))")
+    @Query("SELECT a FROM Album a WHERE LOWER(a.artista.nombre) LIKE %:artista%")
     List<Album> findByArtistaNombreContainingIgnoreCase(String artista);
 
     // Buscar por ambos
-    @Query("SELECT a FROM Album a WHERE LOWER(a.nombre) LIKE LOWER(CONCAT('%', :nombre, '%')) AND LOWER(a.artista" +
-            ".nombre) LIKE LOWER(CONCAT('%', :artista, '%'))")
+    @Query("SELECT a FROM Album a WHERE LOWER(a.nombre) LIKE %:nombre% AND LOWER(a.artista.nombre) LIKE %:artista%")
     List<Album> findByNombreAndArtista(String nombre, String artista);
 
-    // Métodos para UUID que faltaban
+    // Métodos para UUID
     Optional<Album> findByUuid(UUID uuid);
     boolean existsByUuid(UUID uuid);
     void deleteByUuid(UUID uuid);
 
     // Gestión de borrado lógico (isDeleted)
     List<Album> findByIsDeleted(Boolean isDeleted);
-
     // Actualizar el álbum marcándolo como borrado (Soft Delete)
     @Modifying
     @Query("UPDATE Album a SET a.isDeleted = true WHERE a.id = :id")
