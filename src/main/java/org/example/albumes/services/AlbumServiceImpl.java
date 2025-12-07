@@ -141,7 +141,7 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     }
 
     //Método para enviar la notificación
-    void onChange(Notificacion.Tipo tipo, Album data){
+    public void onChange(Notificacion.Tipo tipo, Album data) {
         log.debug("Servicio de Albumes onChange con tipo: {} y datos: {}", tipo, data);
 
         if (webSocketService == null){

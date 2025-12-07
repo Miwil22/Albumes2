@@ -261,8 +261,6 @@ class AlbumServiceImplTest {
 
         when(artistaService.findByNombre(createDto.getArtista())).thenReturn(artista);
         when(albumRepository.save(any(Album.class))).thenReturn(expectedAlbum);
-        doNothing().when(webSocketService).sendMessage(any());
-
         // Act
         AlbumResponseDto actualAlbumResponse = albumService.save(createDto);
 
@@ -294,7 +292,6 @@ class AlbumServiceImplTest {
 
         albumResponse1.setPrecio(nuevoPrecio);
         AlbumResponseDto expectedAlbumResponse = albumResponse1;
-        doNothing().when(webSocketService).sendMessage(any());
 
         // Act
         AlbumResponseDto actualAlbumResponse = albumService.update(id, updateDto);
@@ -343,7 +340,6 @@ class AlbumServiceImplTest {
         // Arrange
         Long id = 1L;
         when(albumRepository.findById(id)).thenReturn(Optional.of(album1));
-        doNothing().when(webSocketService).sendMessage(any());
 
         // Act
         // con AssertJ

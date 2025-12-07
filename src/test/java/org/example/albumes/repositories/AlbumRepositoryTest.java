@@ -93,7 +93,7 @@ public class AlbumRepositoryTest {
 
     @Test
     void findByNombreAndArtista(){
-        List<Album> albumes = albumRepository.findByNombreAndArtista("Abbey", "Beatles");
+        List<Album> albumes = albumRepository.findByNombreAndArtista("abbey", "beatles");
         assertAll("findByNombreAndArtista",
                 () -> assertNotNull(albumes),
                 () -> assertEquals(1, albumes.size()),
