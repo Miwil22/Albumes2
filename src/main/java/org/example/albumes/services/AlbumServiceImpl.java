@@ -170,6 +170,7 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
             senderThread.setName("WebSocketAlbum-" + data.getId());
             senderThread.setDaemon(true);
             senderThread.start();
+            log.info("Hilo de websocket iniciado: {}", data.getId());
         } catch (JsonProcessingException e){
             log.error("Error al convertir la notificación a JSON", e);
         }
