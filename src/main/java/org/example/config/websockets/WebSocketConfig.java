@@ -26,7 +26,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry){
-        registry.addHandler(webSocketAlbumesHandler(), "/ws/" + apiVersion + "/tarjetas");
+        registry.addHandler(webSocketAlbumesHandler(), "/ws/" + apiVersion + "/albumes");
     }
     // Cada uno de los handlers como bean para que cada vez que nos atienda
 
