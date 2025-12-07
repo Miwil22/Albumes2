@@ -25,13 +25,14 @@ public class WebSocketConfig implements WebSocketConfigurer {
     // ws://localhost:3000/ws/v1/tarjetas
 
     @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry){
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(webSocketAlbumesHandler(), "/ws/" + apiVersion + "/albumes");
     }
     // Cada uno de los handlers como bean para que cada vez que nos atienda
 
     @Bean
-    public WebSocketHandler webSocketTarjetasHandler(){
+    public WebSocketHandler webSocketAlbumesHandler(){
         return new WebSocketHandler("Albumes");
     }
 }
+

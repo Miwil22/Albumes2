@@ -1,5 +1,6 @@
 package albumes.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.albumes.dto.AlbumCreateDto;
 import org.example.albumes.dto.AlbumResponseDto;
 import org.example.albumes.dto.AlbumUpdateDto;
@@ -10,6 +11,10 @@ import org.example.albumes.repositories.AlbumRepository;
 import org.example.artistas.models.Artista;
 import org.example.artistas.services.ArtistaService;
 import org.example.albumes.services.AlbumServiceImpl;
+import org.example.config.websockets.WebSocketConfig;
+import org.example.config.websockets.WebSocketHandler;
+import org.example.websockets.notifications.mappers.AlbumNotificationMapper;
+import org.example.websockets.notifications.models.Notificacion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -58,10 +64,22 @@ class AlbumServiceImplTest {
     private AlbumRepository albumRepository;
 
     @Mock
-    private ArtistaService artistaService; // <-- Necesitamos mockear esto
+    private ArtistaService artistaService;
 
     @Spy
     private AlbumMapper albumMapper = new AlbumMapper();
+
+    @Mock
+    private WebSocketConfig webSocketConfig;
+
+    @Mock
+    private AlbumNotificationMapper albumNotificationMapper;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
+    private WebSocketHandler webSocketService;
 
     @InjectMocks
     private AlbumServiceImpl albumService;
@@ -69,6 +87,7 @@ class AlbumServiceImplTest {
     @BeforeEach
     void setUp() {
         responseDto1 = albumMapper.toAlbumResponseDto(album1);
+        albumService.setWebSocketService(webSocketService);
     }
 
     @Test
@@ -101,7 +120,7 @@ class AlbumServiceImplTest {
 
         // Configuramos el repo para que devuelva el álbum "guardado" (simulado)
         when(albumRepository.save(any(Album.class))).thenReturn(album1);
-
+        doNothing().when(webSocketService).sendMessage(any());
         // Act
         var res = albumService.save(createDto);
 
@@ -146,5 +165,12 @@ class AlbumServiceImplTest {
     void findById_NotFound() {
         when(albumRepository.findById(99L)).thenReturn(Optional.empty());
         assertThrows(AlbumNotFoundException.class, () -> albumService.findById(99L));
+    }
+
+    @Test
+    void onChange_ShouldSendMessage() throws IOException{
+        doNothing().when(webSocketService).sendMessage(any());
+        albumService.onChange(Notificacion.Tipo.CREATE, album1);
+        verify(webSocketService).sendMessage(any());
     }
 }
