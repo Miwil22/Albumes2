@@ -370,11 +370,14 @@ class AlbumServiceImplTest {
     }
 
     @Test
-    void onChange_ShouldSendMessage_WhenValidDataProvided() throws IOException {
+    void onChange_ShouldSendMessage_WhenValidDataProvided() throws IOException, InterruptedException {
         // Arrange
         doNothing().when(webSocketService).sendMessage(any());
 
         // Act
         albumService.onChange(Notificacion.Tipo.CREATE, album1);
+
+        // AÑADIR ESTO: Pequeña pausa para que el hilo del servicio tenga tiempo de llamar al mock
+        Thread.sleep(100);
     }
 }
