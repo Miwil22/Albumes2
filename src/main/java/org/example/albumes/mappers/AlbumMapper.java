@@ -4,7 +4,8 @@ import org.example.albumes.dto.AlbumCreateDto;
 import org.example.albumes.dto.AlbumResponseDto;
 import org.example.albumes.dto.AlbumUpdateDto;
 import org.example.albumes.models.Album;
-import org.example.artistas.models.Artista; // Importante
+import org.example.artistas.models.Artista;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -18,7 +19,7 @@ public class AlbumMapper {
                 .nombre(createDto.getNombre())
                 .genero(createDto.getGenero())
                 .precio(createDto.getPrecio())
-                .artista(artista) // Asignamos la entidad
+                .artista(artista)
                 .build();
     }
 
@@ -27,7 +28,7 @@ public class AlbumMapper {
                 .id(album.getId())
                 .uuid(album.getUuid())
                 .createdAt(album.getCreatedAt())
-                .artista(album.getArtista()) // Mantenemos el artista
+                .artista(album.getArtista())
                 .nombre(updateDto.getNombre() != null ? updateDto.getNombre() : album.getNombre())
                 .genero(updateDto.getGenero() != null ? updateDto.getGenero() : album.getGenero())
                 .precio(updateDto.getPrecio() != null ? updateDto.getPrecio() : album.getPrecio())
@@ -41,15 +42,20 @@ public class AlbumMapper {
                 .nombre(album.getNombre())
                 .genero(album.getGenero())
                 .precio(album.getPrecio())
-                .artista(album.getArtista().getNombre()) // Devolvemos solo el nombre
+                .artista(album.getArtista().getNombre())
                 .uuid(album.getUuid())
                 .createdAt(album.getCreatedAt())
                 .updatedAt(album.getUpdatedAt())
                 .build();
     }
 
-    // Añade el método para listas si te falta
+    // Mapeamos de modelo a DTO(lista)
     public java.util.List<AlbumResponseDto> toResponseDtoList(java.util.List<Album> albums) {
         return albums.stream().map(this::toAlbumResponseDto).toList();
+    }
+
+    // Mapeamos de modelo a DTO (page)
+    public Page<AlbumResponseDto> toResponseDtoPage(Page<Album> albumes) {
+        return albumes.map(this::toAlbumResponseDto);
     }
 }

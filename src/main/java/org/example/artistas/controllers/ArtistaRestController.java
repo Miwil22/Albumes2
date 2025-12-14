@@ -6,6 +6,7 @@ import org.example.artistas.services.ArtistaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.utils.pagination.PaginationLinksUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ import java.util.Map;
 @RequestMapping("api/${api.version}/artistas")
 public class ArtistaRestController {
     private final ArtistaService artistaService;
+    private final PaginationLinksUtils paginationLinksUtils;
 
     @GetMapping()
     public ResponseEntity<List<Artista>> getAll(@RequestParam(required = false)String nombre){

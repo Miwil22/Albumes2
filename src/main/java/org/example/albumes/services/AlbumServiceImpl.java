@@ -2,6 +2,7 @@ package org.example.albumes.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.criteria.Join;
 import org.example.albumes.dto.AlbumCreateDto;
 import org.example.albumes.dto.AlbumResponseDto;
 import org.example.albumes.dto.AlbumUpdateDto;
@@ -10,6 +11,7 @@ import org.example.albumes.exceptions.AlbumNotFoundException;
 import org.example.albumes.mappers.AlbumMapper;
 import org.example.albumes.models.Album;
 import org.example.albumes.repositories.AlbumRepository;
+import org.example.artistas.models.Artista;
 import org.example.artistas.services.ArtistaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +25,14 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @CacheConfig(cacheNames = {"albumes"})
@@ -55,18 +61,32 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
 
 
     @Override
-    public List<AlbumResponseDto> findAll(String nombre, String artista) {
-        if ((nombre == null || nombre.isEmpty()) && (artista == null || artista.isEmpty())) {
-            return albumMapper.toResponseDtoList(albumRepository.findAll());
-        }
-        if (nombre != null && (artista == null || artista.isEmpty())) {
-            return albumMapper.toResponseDtoList(albumRepository.findByNombreContainingIgnoreCase(nombre));
-        }
-        if ((nombre == null || nombre.isEmpty()) && artista != null) {
-            return albumMapper.toResponseDtoList(albumRepository.findByArtistaNombreContainingIgnoreCase(artista));
-        }
-        // Esta llamada coincide con el @Query que acabamos de poner en el repositorio
-        return albumMapper.toResponseDtoList(albumRepository.findByNombreAndArtista(nombre, artista));
+    public Page<AlbumResponseDto> findAll(Optional<String> nombre, Optional<String> artista,
+                                          Optional<Boolean> isDeleted, Pageable pageable) {
+        log.info("Buscando álbumes por nombre: {}, artista: {}, isDeleted: {}", nombre, artista, isDeleted);
+
+        // 1. Criterio por nombre del álbum
+        Specification<Album> specNombre = (root, query, criteriaBuilder) ->
+                nombre.map(n -> criteriaBuilder.like(criteriaBuilder.lower(root.get("nombre")), "%" + n.toLowerCase() + "%"))
+                        .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
+
+        // 2. Criterio por nombre del Artista (JOIN)
+        Specification<Album> specArtista = (root, query, criteriaBuilder) ->
+                artista.map(a -> {
+                    Join<Album, Artista> artistaJoin = root.join("artista");
+                    return criteriaBuilder.like(criteriaBuilder.lower(artistaJoin.get("nombre")), "%" + a.toLowerCase() + "%");
+                }).orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
+
+        // 3. Criterio por isDeleted
+        Specification<Album> specIsDeleted = (root, query, criteriaBuilder) ->
+                isDeleted.map(d -> criteriaBuilder.equal(root.get("isDeleted"), d))
+                        .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
+        // Combinamos todo
+        Specification<Album> criterio = Specification.allOf(specNombre, specArtista, specIsDeleted);
+
+        // Devolvemos paginado y mapeado
+        return albumRepository.findAll(criterio, pageable)
+                .map(albumMapper::toAlbumResponseDto);
     }
 
     // Cachea con el id como key
@@ -98,7 +118,7 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         log.info("Guardando álbum: {}", createDto);
 
         // 1. Buscamos el artista (Lanzará excepción si no existe)
-        // Ojo: AlbumCreateDto debe tener un campo "artista" que sea el nombre (String)
+        // AlbumCreateDto debe tener un campo "artista" que sea el nombre (String)
         var artista = artistaService.findByNombre(createDto.getArtista());
 
         // 2. Mapeamos el DTO a Entidad pasando el objeto Artista completo

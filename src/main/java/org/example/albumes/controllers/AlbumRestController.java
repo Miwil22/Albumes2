@@ -1,5 +1,6 @@
 package org.example.albumes.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.example.albumes.dto.AlbumCreateDto;
 import org.example.albumes.dto.AlbumResponseDto;
 import org.example.albumes.dto.AlbumUpdateDto;
@@ -9,6 +10,12 @@ import org.example.albumes.services.AlbumService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.utils.pagination.PageResponse;
+import org.example.utils.pagination.PaginationLinksUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +23,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Controlador de productos del tipo RestController
@@ -38,6 +47,7 @@ import java.util.Map;
 public class AlbumRestController {
     // Servicio de álbumes
     private final AlbumService albumService;
+    private final PaginationLinksUtils paginationLinksUtils;
 
     /**
      * Obtiene todos los álbumes
@@ -47,10 +57,35 @@ public class AlbumRestController {
      * @return Lista de álbumes
      */
     @GetMapping()
-    public ResponseEntity<List<AlbumResponseDto>> getAll(@RequestParam(required = false) String nombre,
-                                                         @RequestParam(required = false) String artista) {
-        log.info("Buscando álbumes por nombre={}, artista={}", nombre, artista);
-        return ResponseEntity.ok(albumService.findAll(nombre, artista));
+    public ResponseEntity<PageResponse<AlbumResponseDto>> getAll(
+            @RequestParam(required = false) Optional<String> nombre,
+            @RequestParam(required = false) Optional<String> artista,
+            @RequestParam(required = false) Optional<Boolean> isDeleted,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            HttpServletRequest request
+    ){
+        log.info("Buscando álbumes con nombre={}, artista={}, isDeleted={}, page={}, size={}, sort={}",
+                nombre, artista, isDeleted, page, size, sortBy);
+
+        // Ordenacion
+        Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() :
+                Sort.by(sortBy).descending();
+
+        // Paginacion
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // Builder de URLs para los links
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(request.getRequestURL().toString());
+
+        // LLamada al servicio
+        Page<AlbumResponseDto> pageResult = albumService.findAll(nombre, artista, isDeleted, pageable);
+        //Respuesta
+        return ResponseEntity.ok()
+                .header("link", paginationLinksUtils.createLinkHeader(pageResult, uriBuilder))
+                .body(PageResponse.of(pageResult, sortBy, direction));
     }
 
     /**

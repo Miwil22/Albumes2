@@ -89,3 +89,10 @@ DELETE http://localhost:3000/api/v1/albumes/2
 
 ### Borrar Álbum (No encontrado)
 DELETE http://localhost:3000/api/v1/albumes/99
+
+### Paginacion y ordenacion
+GET http://localhost:3000/api/v1/albumes?sortBy=artista&direction=desc
+###
+GET http://localhost:3000/api/v1/albumes?sortBy=artista&direction=desc&size=1
+###
+GET http://localhost:3000/api/v1/albumes?sortBy=artista&direction=desc&size=1&page=0

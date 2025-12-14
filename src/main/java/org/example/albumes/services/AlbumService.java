@@ -3,11 +3,14 @@ package org.example.albumes.services;
 import org.example.albumes.dto.AlbumCreateDto;
 import org.example.albumes.dto.AlbumResponseDto;
 import org.example.albumes.dto.AlbumUpdateDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
+import java.util.Optional;
 
 public interface AlbumService {
-    List<AlbumResponseDto> findAll(String nombre, String artista);
+    Page<AlbumResponseDto> findAll(Optional<String> nombre, Optional<String> artista, Optional<Boolean> isDeleted,
+                                   Pageable pageable);
 
     AlbumResponseDto findById(Long id);
 

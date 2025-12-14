@@ -2,6 +2,7 @@ package org.example.albumes.repositories;
 
 import org.example.albumes.models.Album;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -11,7 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface AlbumRepository extends JpaRepository<Album, Long> {
+public interface AlbumRepository extends JpaRepository<Album, Long>, JpaSpecificationExecutor<Album> {
 
     // Buscar por nombre (Usamos Containing para búsquedas parciales)
     List<Album> findByNombreContainingIgnoreCase(String nombre);
