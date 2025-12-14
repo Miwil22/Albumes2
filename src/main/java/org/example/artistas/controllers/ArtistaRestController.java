@@ -1,12 +1,18 @@
 package org.example.artistas.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.example.artistas.dto.ArtistaRequestDto;
 import org.example.artistas.models.Artista;
 import org.example.artistas.services.ArtistaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.utils.pagination.PageResponse;
 import org.example.utils.pagination.PaginationLinksUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -14,10 +20,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,9 +36,25 @@ public class ArtistaRestController {
     private final PaginationLinksUtils paginationLinksUtils;
 
     @GetMapping()
-    public ResponseEntity<List<Artista>> getAll(@RequestParam(required = false)String nombre){
-        log.info("Buscando artistas con nombre: {}", nombre);
-        return ResponseEntity.ok(artistaService.findAll(nombre));
+    public ResponseEntity<PageResponse<Artista>> getAll(
+            @RequestParam(required = false) Optional<String> nombre,
+            @RequestParam(required = false) Optional<Boolean> isDeleted,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            HttpServletRequest request
+    ) {
+        log.info("Buscando artistas con nombre={}, isDeleted={}", nombre, isDeleted);
+        Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(request.getRequestURL().toString());
+
+        Page<Artista> pageResult = artistaService.findAll(nombre, isDeleted, pageable);
+
+        return ResponseEntity.ok()
+                .header("link", paginationLinksUtils.createLinkHeader(pageResult, uriBuilder))
+                .body(PageResponse.of(pageResult, sortBy, direction));
     }
 
     @GetMapping("/{id}")

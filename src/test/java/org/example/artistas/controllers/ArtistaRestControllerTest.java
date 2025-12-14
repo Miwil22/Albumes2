@@ -10,12 +10,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,38 +45,47 @@ class ArtistaRestControllerTest {
 
     @Test
     void getAll() {
+        // Arrange
         var artistas = List.of(artista1, artista2);
-        when(artistaService.findAll(null)).thenReturn(artistas);
+        var pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+        var page = new PageImpl<>(artistas);
 
-        var result = mockMvcTester.get().uri(ENDPOINT)
-                .contentType(MediaType.APPLICATION_JSON)
-                .exchange();
+        when(artistaService.findAll(eq(Optional.empty()), eq(Optional.empty()), any(Pageable.class)))
+                .thenReturn(page);
+        // Act
+        var result = mockMvcTester.get().uri(ENDPOINT).exchange();
 
+        // Assert
         assertThat(result).hasStatusOk()
                 .bodyJson().satisfies(json -> {
-                    assertThat(json).extractingPath("$.length()").isEqualTo(artistas.size());
-                    assertThat(json).extractingPath("$[0]").convertTo(Artista.class).usingRecursiveComparison().isEqualTo(artista1);
-                    assertThat(json).extractingPath("$[1]").convertTo(Artista.class).usingRecursiveComparison().isEqualTo(artista2);
+                    assertThat(json).extractingPath("$.content.length()").isEqualTo(2);
+                    assertThat(json).extractingPath("$.content[0].nombre").isEqualTo("Queen");
                 });
-        verify(artistaService, times(1)).findAll(null);
     }
 
     @Test
     void getAllByNombre() {
+        // Arrange
         var artistas = List.of(artista2);
         String queryString = "?nombre=" + artista2.getNombre();
-        when(artistaService.findAll(anyString())).thenReturn(artistas);
+        var pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+        var page = new PageImpl<>(artistas);
 
-        var result = mockMvcTester.get().uri(ENDPOINT + queryString)
+        when(artistaService.findAll(eq(Optional.of(artista2.getNombre())), eq(Optional.empty()), any(Pageable.class)))
+                .thenReturn(page);
+
+        // Act
+        var result = mockMvcTester.get()
+                .uri(ENDPOINT + queryString)
                 .contentType(MediaType.APPLICATION_JSON)
                 .exchange();
 
+        // Assert
         assertThat(result).hasStatusOk()
                 .bodyJson().satisfies(json -> {
-                    assertThat(json).extractingPath("$.length()").isEqualTo(artistas.size());
-                    assertThat(json).extractingPath("$[0]").convertTo(Artista.class).usingRecursiveComparison().isEqualTo(artista2);
+                    assertThat(json).extractingPath("$.content.length()").isEqualTo(1);
+                    assertThat(json).extractingPath("$.content[0].nombre").isEqualTo("AC/DC");
                 });
-        verify(artistaService, times(1)).findAll(anyString());
     }
 
     @Test

@@ -14,26 +14,38 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
-@CacheConfig(cacheNames = "{artista}")
+@CacheConfig(cacheNames = "{artistas}")
 public class ArtistaServiceImpl implements ArtistaService{
     private final ArtistaRepository artistaRepository;
     private final ArtistaMapper artistaMapper;
 
     @Override
-    public List<Artista> findAll(String nombre) {
-        log.info("Buscando artistas por nombre: {}", nombre);
-        if (nombre == null || nombre.isEmpty()){
-            return artistaRepository.findAll();
-        } else {
-            return artistaRepository.findByNombreContainingIgnoreCase(nombre);
-        }
+    public Page<Artista> findAll(Optional<String> nombre, Optional<Boolean> isDeleted, Pageable pageable) {
+        log.info("Buscando artistas con nombre: {}, isDeleted: {}", nombre, isDeleted);
+        // 1. Filtro por nombre
+        Specification<Artista> specNombre = (root, query, criteriaBuilder) ->
+                nombre.map(n -> criteriaBuilder.like(criteriaBuilder.lower(root.get("nombre")), "%" + n.toLowerCase() + "%"))
+                        .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
+
+        // 2. Filtro por borrado lógico
+        Specification<Artista> specIsDeleted = (root, query, criteriaBuilder) ->
+                isDeleted.map(d -> criteriaBuilder.equal(root.get("isDeleted"), d))
+                        .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
+
+        Specification<Artista> criterio = Specification.allOf(specNombre, specIsDeleted);
+
+        return artistaRepository.findAll(criterio, pageable);
     }
 
     @Override
@@ -66,32 +78,27 @@ public class ArtistaServiceImpl implements ArtistaService{
     @CachePut
     public Artista update(Long id, ArtistaRequestDto artistaRequestDto) {
         log.info("Actualizando artista: {}", artistaRequestDto);
-        Artista artistaActual = findById(id);
-        // Verificamos duplicados si cambiamos el nombre
+        findById(id); // Verificamos existencia
         artistaRepository.findByNombreEqualsIgnoreCase(artistaRequestDto.getNombre()).ifPresent(art -> {
             if (!art.getId().equals(id)){
                 throw new ArtistaConflictException("Ya existe un artista con el nombre " + artistaRequestDto.getNombre());
             }
         });
+        // Recuperamos el actual para el mapper
+        Artista artistaActual = findById(id);
         return artistaRepository.save(artistaMapper.toArtista(artistaRequestDto, artistaActual));
     }
 
     @Override
-    @CacheEvict
+    @CacheEvict(allEntries = true) // Mejor limpiar todo al borrar por si acaso afecta a listados
     @Transactional
     public void deleteById(Long id) {
         log.info("Borrando artista por id: {}", id);
-        // Verificamos si existe
-        findById(id);
-
-        // Verificamos si tiene álbumes asociados
+        findById(id); // Verificamos existencia
         if (artistaRepository.existsAlbumById(id)){
-            String mensaje = "No se puede borrar el artista con id: " + id + " porque tiene álbumes asociados";
-            log.warn(mensaje);
-            throw new ArtistaConflictException(mensaje);
-        }else {
+            throw new ArtistaConflictException("No se puede borrar el artista con id: " + id + " porque tiene álbumes asociados");
+        } else {
             artistaRepository.deleteById(id);
         }
-
     }
 }

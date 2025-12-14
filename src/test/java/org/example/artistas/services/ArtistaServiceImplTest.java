@@ -13,6 +13,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,13 +43,21 @@ class ArtistaServiceImplTest {
 
     @Test
     public void testFindAll() {
-        when(artistaRepository.findAll()).thenReturn(List.of(artista));
-        var res = artistaService.findAll(null);
-        assertAll("findAll",
-                () -> assertNotNull(res),
-                () -> assertFalse(res.isEmpty())
-        );
-        verify(artistaRepository, times(1)).findAll();
+        // Arrange
+        Pageable pageable = PageRequest.of(0, 10);
+        var page = new PageImpl<>(List.of(artista));
+        when(artistaRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+
+        // Act
+        var res = artistaService.findAll(Optional.empty(), Optional.empty(), pageable);
+
+        // Assert
+        assertNotNull(res);
+        assertFalse(res.isEmpty());
+        assertEquals(1, res.getTotalElements());
+
+        // Verify
+        verify(artistaRepository, times(1)).findAll(any(Specification.class), any(Pageable.class));
     }
 
     @Test
