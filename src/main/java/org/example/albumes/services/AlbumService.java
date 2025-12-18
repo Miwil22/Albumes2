@@ -16,9 +16,14 @@ public interface AlbumService {
 
     AlbumResponseDto findByUuid(String uuid);
 
+    Page<AlbumResponseDto> findByUsuarioId(Long usuarioId, Pageable pageable);
+    AlbumResponseDto findByUsuarioId(Long usuarioId, Long idAlbum);
+
     AlbumResponseDto save(AlbumCreateDto createDto);
+    AlbumResponseDto save(AlbumCreateDto albumCreateDto, Long usuarioId);
 
     AlbumResponseDto update(Long id, AlbumUpdateDto updateDto);
+    AlbumResponseDto update(Long id, AlbumUpdateDto updateDto, Long usuarioId);
 
     void deleteById(Long id);
 
