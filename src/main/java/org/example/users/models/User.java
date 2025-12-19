@@ -36,13 +36,13 @@ public class User implements UserDetails {
     @NotBlank(message = "El nombre no puede estar vacío")
     private String nombre;
 
-    @Column(unique = true, nullable = false)
-    @NotBlank(message = "El username no puede estar vacío")
-    private String username;
-
     @Column(nullable = false)
     @NotBlank(message = "Los apellidos no pueden estar vacíos")
     private String apellidos;
+
+    @Column(unique = true, nullable = false)
+    @NotBlank(message = "El username no puede estar vacío")
+    private String username;
 
     @Column(unique = true, nullable = false)
     @Email(message = "El email debe ser válido")
@@ -84,27 +84,13 @@ public class User implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
-        return username;
-    }
-
+    public String getUsername() { return username; }
     @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
+    public boolean isAccountNonExpired() { return true; }
     @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
+    public boolean isAccountNonLocked() { return true; }
     @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
+    public boolean isCredentialsNonExpired() { return true; }
     @Override
-    public boolean isEnabled() {
-        return !isDeleted;
-    }
+    public boolean isEnabled() { return !isDeleted; }
 }
