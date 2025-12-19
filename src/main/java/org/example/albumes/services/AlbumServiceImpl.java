@@ -112,6 +112,26 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         }
     }
 
+    @Override
+    public Page<AlbumResponseDto> findByUsuarioId(Long usuarioId, Pageable pageable) {
+        log.info("Obteniendo álbumes del usuario con id: {}", usuarioId);
+        return albumRepository.findByArtista_Usuario_Id(usuarioId, pageable)
+                .map(albumMapper::toAlbumResponseDto);
+    }
+
+    @Override
+    public AlbumResponseDto findByUsuarioId(Long usuarioId, Long idAlbum) {
+        log.info("Obteniendo álbum {} del usuario con id: {}", idAlbum, usuarioId);
+        var albumes = albumRepository.findByArtista_Usuario_Id(usuarioId);
+        var albumEncontrado = albumes.stream().filter(a -> a.getId().equals(idAlbum))
+                .findFirst().orElse(null);
+        if (albumEncontrado == null) {
+            throw new AlbumNotFoundException(idAlbum);
+            // O una excepción personalizada indicando que no pertenece al usuario
+        }
+        return albumMapper.toAlbumResponseDto(albumEncontrado);
+    }
+
     @CachePut(key = "#result.id")
     @Override
     public AlbumResponseDto save(AlbumCreateDto createDto) {
@@ -133,6 +153,22 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         return albumMapper.toAlbumResponseDto(albumSaved);
     }
 
+    @Override
+    public AlbumResponseDto save(AlbumCreateDto createDto, Long usuarioId) {
+        log.info("Guardando álbum: {} de usuarioId: {}", createDto, usuarioId);
+        var artista = artistaService.findByNombre(createDto.getArtista());
+
+        var usuario = artista.getUsuario();
+        if ((usuario != null) && (!usuario.getId().equals(usuarioId))) {
+            throw new RuntimeException("El usuario no se corresponde con el artista del álbum");
+        }
+
+        Album nuevoAlbum = albumMapper.toAlbum(createDto, artista);
+        Album albumSaved = albumRepository.save(nuevoAlbum);
+        onChange(Notificacion.Tipo.CREATE, albumSaved);
+        return albumMapper.toAlbumResponseDto(albumSaved);
+    }
+
     @CachePut(key = "#result.id")
     @Override
     public AlbumResponseDto update(Long id, AlbumUpdateDto updateDto) {
@@ -146,7 +182,25 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         // Notificacion WS
         onChange(Notificacion.Tipo.UPDATE, albumActualizado);
 
-        return albumMapper.toAlbumResponseDto(albumActualizado);    }
+        return albumMapper.toAlbumResponseDto(albumActualizado);
+    }
+
+    @Override
+    public AlbumResponseDto update(Long id, AlbumUpdateDto updateDto, Long usuarioId) {
+        log.info("Actualizando álbum por id: {} y usuario: {}", id, usuarioId);
+        var albumActual = albumRepository.findById(id)
+                .orElseThrow(() -> new AlbumNotFoundException(id));
+
+        // Comprobamos propiedad
+        var usuario = albumActual.getArtista().getUsuario();
+        if ((usuario != null) && (!usuario.getId().equals(usuarioId))) {
+            throw new RuntimeException("El álbum no corresponde a este usuario");
+        }
+
+        Album albumActualizado = albumRepository.save(albumMapper.toAlbum(updateDto, albumActual));
+        onChange(Notificacion.Tipo.UPDATE, albumActualizado);
+        return albumMapper.toAlbumResponseDto(albumActualizado);
+    }
 
     // El key es opcional, si no se indica
     @CacheEvict(key = "#id")

@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.artistas.models.Artista;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -67,7 +68,10 @@ public class User implements UserDetails {
     @Builder.Default
     private Boolean isDeleted = false;
 
-    // Métodos de UserDetails requeridos por Spring Security
+    @OneToOne
+    @JoinColumn(name = "artista_id")
+    private Artista artista;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()

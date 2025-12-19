@@ -1,5 +1,6 @@
 package org.example.artistas.models;
 
+import org.example.users.models.User;
 import org.example.albumes.models.Album;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -39,4 +40,7 @@ public class Artista {
     @OneToMany(mappedBy = "artista")
     @JsonIgnoreProperties("artista") // Para evitar bucles infinitos al convertir a JSON
     private List<Album> albumes;
+
+    @OneToOne(mappedBy = "artista")
+    private User usuario;
 }
