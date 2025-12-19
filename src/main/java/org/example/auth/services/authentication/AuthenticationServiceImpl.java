@@ -47,7 +47,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .password(passwordEncoder.encode(request.getPassword()))
                     .email(request.getEmail())
                     .nombre(request.getNombre())
-                    .apellidos(request.getApellidos())
+                     .apellidos(request.getApellidos())
                     .roles(Stream.of(Role.USER).collect(Collectors.toSet()))
                     .build();
             try {

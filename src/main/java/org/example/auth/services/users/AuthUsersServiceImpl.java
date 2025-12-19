@@ -3,6 +3,7 @@ package org.example.auth.services.users;
 import org.example.auth.repositories.AuthUsersRepository;
 import lombok.RequiredArgsConstructor;
 import org.example.auth.repositories.AuthUsersRepository;
+import org.example.users.exceptions.UserNotFound;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 

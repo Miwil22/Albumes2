@@ -40,6 +40,10 @@ public class User implements UserDetails {
     @NotBlank(message = "El username no puede estar vacío")
     private String username;
 
+    @Column(nullable = false)
+    @NotBlank(message = "Los apellidos no pueden estar vacíos")
+    private String apellidos;
+
     @Column(unique = true, nullable = false)
     @Email(message = "El email debe ser válido")
     @NotBlank(message = "El email no puede estar vacío")

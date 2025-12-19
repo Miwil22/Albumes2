@@ -31,7 +31,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -59,37 +58,31 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         this.webSocketService = webSocketHandler;
     }
 
-
     @Override
     public Page<AlbumResponseDto> findAll(Optional<String> nombre, Optional<String> artista,
                                           Optional<Boolean> isDeleted, Pageable pageable) {
         log.info("Buscando álbumes por nombre: {}, artista: {}, isDeleted: {}", nombre, artista, isDeleted);
 
-        // 1. Criterio por nombre del álbum
         Specification<Album> specNombre = (root, query, criteriaBuilder) ->
                 nombre.map(n -> criteriaBuilder.like(criteriaBuilder.lower(root.get("nombre")), "%" + n.toLowerCase() + "%"))
                         .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
 
-        // 2. Criterio por nombre del Artista (JOIN)
         Specification<Album> specArtista = (root, query, criteriaBuilder) ->
                 artista.map(a -> {
                     Join<Album, Artista> artistaJoin = root.join("artista");
                     return criteriaBuilder.like(criteriaBuilder.lower(artistaJoin.get("nombre")), "%" + a.toLowerCase() + "%");
                 }).orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
 
-        // 3. Criterio por isDeleted
         Specification<Album> specIsDeleted = (root, query, criteriaBuilder) ->
                 isDeleted.map(d -> criteriaBuilder.equal(root.get("isDeleted"), d))
                         .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
-        // Combinamos todo
+
         Specification<Album> criterio = Specification.allOf(specNombre, specArtista, specIsDeleted);
 
-        // Devolvemos paginado y mapeado
         return albumRepository.findAll(criterio, pageable)
                 .map(albumMapper::toAlbumResponseDto);
     }
 
-    // Cachea con el id como key
     @Cacheable(key = "#id")
     @Override
     public AlbumResponseDto findById(Long id) {
@@ -98,7 +91,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
                 .orElseThrow(() -> new AlbumNotFoundException(id)));
     }
 
-    // Cachea con el uuid como key
     @Cacheable(key = "#uuid")
     @Override
     public AlbumResponseDto findByUuid(String uuid) {
@@ -121,13 +113,13 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
 
     @Override
     public AlbumResponseDto findByUsuarioId(Long usuarioId, Long idAlbum) {
-        log.info("Obteniendo álbum {} del usuario con id: {}", idAlbum, usuarioId);
-        var albumes = albumRepository.findByArtista_Usuario_Id(usuarioId);
+        log.info("Obteniendo álbum del usuario con id: {}", usuarioId);
+        var albumes = albumRepository.findByUsuarioId(usuarioId);
+
         var albumEncontrado = albumes.stream().filter(a -> a.getId().equals(idAlbum))
                 .findFirst().orElse(null);
         if (albumEncontrado == null) {
             throw new AlbumNotFoundException(idAlbum);
-            // O una excepción personalizada indicando que no pertenece al usuario
         }
         return albumMapper.toAlbumResponseDto(albumEncontrado);
     }
@@ -136,20 +128,10 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     @Override
     public AlbumResponseDto save(AlbumCreateDto createDto) {
         log.info("Guardando álbum: {}", createDto);
-
-        // 1. Buscamos el artista (Lanzará excepción si no existe)
-        // AlbumCreateDto debe tener un campo "artista" que sea el nombre (String)
         var artista = artistaService.findByNombre(createDto.getArtista());
-
-        // 2. Mapeamos el DTO a Entidad pasando el objeto Artista completo
         Album nuevoAlbum = albumMapper.toAlbum(createDto, artista);
-
         Album albumSaved = albumRepository.save(nuevoAlbum);
-
-        // Notificacion WS
         onChange(Notificacion.Tipo.CREATE, albumSaved);
-
-        // 3. Guardamos
         return albumMapper.toAlbumResponseDto(albumSaved);
     }
 
@@ -176,12 +158,8 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         var albumActual = albumRepository.findById(id)
                 .orElseThrow(() -> new AlbumNotFoundException(id));
 
-        // Actualizamos los datos
         Album albumActualizado = albumRepository.save(albumMapper.toAlbum(updateDto, albumActual));
-
-        // Notificacion WS
         onChange(Notificacion.Tipo.UPDATE, albumActualizado);
-
         return albumMapper.toAlbumResponseDto(albumActualizado);
     }
 
@@ -201,6 +179,17 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         return albumMapper.toAlbumResponseDto(albumActualizado);
     }
 
+    @CacheEvict(key = "#id")
+    @Override
+    public void deleteById(Long id) {
+        log.debug("Borrando álbum por id: {}", id);
+        var albumDeleted = albumRepository.findById(id)
+                .orElseThrow(() -> new AlbumNotFoundException(id));
+
+        albumRepository.deleteById(id);
+        onChange(Notificacion.Tipo.DELETE, albumDeleted);
+    }
+
     @Override
     @CacheEvict(key = "#id")
     public void deleteById(Long id, Long usuarioId) {
@@ -209,14 +198,13 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
 
         var usuario = album.getArtista().getUsuario();
         if ((usuario != null) && (!usuario.getId().equals(usuarioId))) {
-            throw new RuntimeException("El álbum no corresponde a este usuario"); // O AlbumNotFoundException para no dar pistas
+            throw new RuntimeException("El álbum no corresponde a este usuario");
         }
 
         albumRepository.deleteById(id);
         onChange(Notificacion.Tipo.DELETE, album);
     }
 
-    //Método para enviar la notificación
     void onChange(Notificacion.Tipo tipo, Album data) {
         log.debug("Servicio de Albumes onChange con tipo: {} y datos: {}", tipo, data);
 
@@ -246,10 +234,8 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
             senderThread.setName("WebSocketAlbum-" + data.getId());
             senderThread.setDaemon(true);
             senderThread.start();
-            log.info("Hilo de websocket iniciado: {}", data.getId());
         } catch (JsonProcessingException e){
             log.error("Error al convertir la notificación a JSON", e);
         }
     }
-
 }

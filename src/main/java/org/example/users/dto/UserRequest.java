@@ -1,12 +1,12 @@
 package org.example.users.dto;
 
-import org.example.users.models.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.users.models.Role;
 import org.hibernate.validator.constraints.Length;
 
 import java.util.Set;
@@ -19,8 +19,12 @@ public class UserRequest {
     @NotBlank(message = "El nombre no puede estar vacío")
     private String nombre;
 
+    @NotBlank(message = "Los apellidos no puede estar vacío")
+    private String apellidos;
+
     @NotBlank(message = "El username no puede estar vacío")
     private String username;
+
 
     @Email(message = "El email debe ser válido")
     @NotBlank(message = "El email no puede estar vacío")
