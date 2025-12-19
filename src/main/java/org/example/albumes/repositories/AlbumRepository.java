@@ -46,7 +46,7 @@ public interface AlbumRepository extends JpaRepository<Album, Long>, JpaSpecific
     Page<Album> findByArtista_Usuario_Id(Long usuarioId, Pageable pageable);
 
     @Query("SELECT a FROM Album a WHERE a.artista.usuario.id = :usuarioId")
-    List<Album> findByArtista_Usuario_Id(Long usuarioId);
+    List<Album> findByUsuarioId(Long usuarioId);
 
     // Obtiene si existe una tarjeta con el id del usuario
     @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Album a WHERE a.artista.usuario.id = :id")

@@ -25,6 +25,5 @@ public interface AlbumService {
     AlbumResponseDto update(Long id, AlbumUpdateDto updateDto);
     AlbumResponseDto update(Long id, AlbumUpdateDto updateDto, Long usuarioId);
 
-    void deleteById(Long id);
-
+    void deleteById(Long id, Long usuarioId);
 }

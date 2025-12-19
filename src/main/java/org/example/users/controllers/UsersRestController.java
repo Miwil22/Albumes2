@@ -179,8 +179,8 @@ public class UsersRestController {
             @AuthenticationPrincipal User user,
             @PathVariable("id") Long idAlbum
     ) {
-        log.info("Borrando álbum con id: {}", idAlbum);
-        albumService.deleteById(idAlbum);
+        log.info("Borrando álbum con id: {} del usuario: {}", idAlbum, user.getUsername());
+        albumService.deleteById(idAlbum, user.getId());
         return ResponseEntity.noContent().build();
     }
 

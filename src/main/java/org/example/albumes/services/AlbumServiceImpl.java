@@ -191,7 +191,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         var albumActual = albumRepository.findById(id)
                 .orElseThrow(() -> new AlbumNotFoundException(id));
 
-        // Comprobamos propiedad
         var usuario = albumActual.getArtista().getUsuario();
         if ((usuario != null) && (!usuario.getId().equals(usuarioId))) {
             throw new RuntimeException("El álbum no corresponde a este usuario");
@@ -202,16 +201,19 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         return albumMapper.toAlbumResponseDto(albumActualizado);
     }
 
-    // El key es opcional, si no se indica
-    @CacheEvict(key = "#id")
     @Override
-    public void deleteById(Long id) {
-        log.debug("Borrando álbum por id: {}", id);
-        var albumDeleted = albumRepository.findById(id)
-                .orElseThrow(() -> new AlbumNotFoundException(id));
+    @CacheEvict(key = "#id")
+    public void deleteById(Long id, Long usuarioId) {
+        log.info("Borrando álbum por id: {} y usuario: {}", id, usuarioId);
+        var album = albumRepository.findById(id).orElseThrow(() -> new AlbumNotFoundException(id));
+
+        var usuario = album.getArtista().getUsuario();
+        if ((usuario != null) && (!usuario.getId().equals(usuarioId))) {
+            throw new RuntimeException("El álbum no corresponde a este usuario"); // O AlbumNotFoundException para no dar pistas
+        }
 
         albumRepository.deleteById(id);
-        onChange(Notificacion.Tipo.DELETE, albumDeleted);
+        onChange(Notificacion.Tipo.DELETE, album);
     }
 
     //Método para enviar la notificación
