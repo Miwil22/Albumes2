@@ -17,17 +17,9 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getMyProfile(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(new UserResponse(
-                user.getId(),
-                user.getNombre(),
-                user.getApellidos(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getRole()
-        ));
+        return ResponseEntity.ok(toResponse(user));
     }
 
-    // Modificar MI perfil
     @PutMapping("/me")
     public ResponseEntity<UserResponse> updateMyProfile(@AuthenticationPrincipal User user, @RequestBody UserResponse updates) {
         if(updates.nombre() != null) user.setNombre(updates.nombre());
@@ -35,14 +27,18 @@ public class UserController {
         if(updates.email() != null) user.setEmail(updates.email());
 
         User updated = userRepository.save(user);
+        return ResponseEntity.ok(toResponse(updated));
+    }
 
-        return ResponseEntity.ok(new UserResponse(
-                updated.getId(),
-                updated.getNombre(),
-                updated.getApellidos(),
-                updated.getUsername(),
-                updated.getEmail(),
-                updated.getRole()
-        ));
+    // Método auxiliar manual para no depender del Mapper y evitar errores
+    private UserResponse toResponse(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getNombre(),
+                user.getApellidos(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole()
+        );
     }
 }

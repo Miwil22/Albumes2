@@ -10,12 +10,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/${api.version}/auth") // /api/v1/auth
+@RequestMapping("/api/${api.version}/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -26,19 +25,17 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        // Creamos usuario (Por defecto ROLE_USER)
         var user = User.builder()
                 .username(request.username())
                 .password(passwordEncoder.encode(request.password()))
-                .email(request.email())
                 .nombre(request.nombre())
                 .apellidos(request.apellidos())
-                .role(Role.USER)
+                .email(request.email())
+                .role(Role.USER) // Por defecto USER
                 .build();
-
         repository.save(user);
-        var jwtToken = jwtService.generateToken(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(jwtToken));
+        var token = jwtService.generateToken(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new AuthResponse(token));
     }
 
     @PostMapping("/login")
@@ -47,7 +44,7 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );
         var user = repository.findByUsername(request.username()).orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
-        return ResponseEntity.ok(new AuthResponse(jwtToken));
+        var token = jwtService.generateToken(user);
+        return ResponseEntity.ok(new AuthResponse(token));
     }
 }

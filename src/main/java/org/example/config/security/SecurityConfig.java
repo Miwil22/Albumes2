@@ -18,7 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
-    private final AuthenticationProvider authenticationProvider; // Inyectado desde ApplicationConfig
+    private final AuthenticationProvider authenticationProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -26,19 +26,19 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Rutas públicas
+                        // 1. Permitir Auth y WebSockets
                         .requestMatchers("/api/*/auth/**", "/ws/**").permitAll()
 
-                        // REGLA: Objetos (Albumes) pueden verse por todo el mundo
+                        // 2. REGLA: "Verse por todo el mundo" (GET es público)
                         .requestMatchers(HttpMethod.GET, "/api/*/albumes/**").permitAll()
 
-                        // REGLA: Objetos solo creados/modificados/eliminados por ADMIN
+                        // 3. REGLA: "Solo Admin crea, modifica, elimina"
                         .requestMatchers(HttpMethod.POST, "/api/*/albumes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/*/albumes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/*/albumes/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/*/albumes/**").hasRole("ADMIN")
 
-                        // REGLA: Usuario puede ver/modificar su perfil
+                        // 4. REGLA: "Usuario ve y modifica su perfil"
                         .requestMatchers("/api/*/users/me/**").authenticated()
 
                         .anyRequest().authenticated()
