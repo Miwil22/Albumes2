@@ -10,33 +10,9 @@ INSERT INTO ALBUMES (nombre, genero, precio, artista_id, uuid, created_at, updat
     CURRENT_TIMESTAMP, false);
 
 -- USUARIOS
--- Admin (id 1)
-insert into USUARIOS (nombre, apellidos, username, email, password, is_deleted, created_at, updated_at)
-values
-('Admin', 'Admin Admin', 'admin', 'admin@prueba.net',
-    '$2a$10$vPaqZvZkz6jhb7U7k/V/v.5vprfNdOnh4sxi/qpPRkYTzPmFlI9p2', false, CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP);
+-- 1. Insertar Usuario (Password es 'admin123' cifrada con BCrypt)
+INSERT INTO USUARIOS (id, nombre, apellidos, username, email, password, created_at, updated_at, is_deleted)
+VALUES (1, 'Admin', 'Istrador', 'admin', 'admin@example.com', '$2a$10$R/En/sK.s3D/oG6vI.p0O.a.z1.g2.q3.r4.s5.t6', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false);
 
-insert into USER_ROLES (user_id, roles) values (1, 'USER');
-insert into USER_ROLES (user_id, roles) values (1, 'ADMIN');
-
--- Jose (id 2) - Asociado a Artista 2 (artista_id, NO titular_id)
-insert into USUARIOS (nombre, apellidos, username, email, password, artista_id, is_deleted, created_at, updated_at)
-values ('Jose', 'Jose User', 'jose', 'user@prueba.net',
-        '$2a$12$RUq2ScW1Kiizu5K4gKoK4OTz80.DWaruhdyfi2lZCB.KeuXTBh0S.', 2, false,
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-insert into USER_ROLES (user_id, roles) values (2, 'USER');
-
--- Test (id 3)
-insert into USUARIOS (nombre, apellidos, username, email, password, is_deleted, created_at, updated_at)
-values ('Test', 'Test Test', 'test', 'test@prueba.net',
-        '$2a$10$Pd1yyq2NowcsDf4Cpf/ZXObYFkcycswqHAqBndE1wWJvYwRxlb.Pu', false,
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-insert into USER_ROLES (user_id, roles) values (3, 'USER');
-
--- Paco (id 4) - Asociado a Artista 3
-insert into USUARIOS (nombre, apellidos, username, email, password, artista_id, is_deleted, created_at, updated_at)
-values ('Paco', 'Paco Otro', 'paco', 'otro@prueba.net',
-        '$2a$12$3Q4.UZbvBMBEvIwwjGEjae/zrIr6S50NusUlBcCNmBd2382eyU0bS', 3, false,
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-insert into USER_ROLES (user_id, roles) values (4, 'USER');
+-- 2. Asignar Rol ADMIN (La tabla se suele llamar USUARIOS_ROLES o USER_ROLES, Spring la crea sola)
+INSERT INTO USER_ROLES (user_id, roles) VALUES (1, 'ADMIN');
