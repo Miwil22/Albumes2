@@ -1,11 +1,11 @@
-package org.example.albumes.exceptions;
+package org.example.users.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class AlbumBadRequestException extends AlbumException {
-    public AlbumBadRequestException(String message) {
+public class UserNameOrEmailExists extends RuntimeException {
+    public UserNameOrEmailExists(String message) {
         super(message);
     }
 }
