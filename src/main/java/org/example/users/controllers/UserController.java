@@ -15,11 +15,12 @@ public class UserController {
 
     private final UserRepository userRepository;
 
-    // Obtener MI perfil (El usuario logueado)
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getMyProfile(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(new UserResponse(
                 user.getId(),
+                user.getNombre(),
+                user.getApellidos(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getRole()
@@ -29,12 +30,16 @@ public class UserController {
     // Modificar MI perfil
     @PutMapping("/me")
     public ResponseEntity<UserResponse> updateMyProfile(@AuthenticationPrincipal User user, @RequestBody UserResponse updates) {
-        // Aquí actualizas los campos (nombre, email...)
+        if(updates.nombre() != null) user.setNombre(updates.nombre());
+        if(updates.apellidos() != null) user.setApellidos(updates.apellidos());
         if(updates.email() != null) user.setEmail(updates.email());
-        // Guardamos
+
         User updated = userRepository.save(user);
+
         return ResponseEntity.ok(new UserResponse(
                 updated.getId(),
+                updated.getNombre(),
+                updated.getApellidos(),
                 updated.getUsername(),
                 updated.getEmail(),
                 updated.getRole()
