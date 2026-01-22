@@ -1,47 +1,93 @@
 package org.example.users.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-@Data
 @Builder
-@NoArgsConstructor
+@Getter
+@Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
-@Table(name = "usuarios")
+@Table(name = "USUARIOS")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "El nombre no puede estar vacío")
+    @Column(nullable = false)
+    private String nombre;
+
+    @NotBlank(message = "Los apellidos no pueden estar vacíos")
+    @Column(nullable = false)
+    private String apellidos;
+
     @Column(unique = true, nullable = false)
+    @NotBlank(message = "El username no puede estar vacío")
     private String username;
+
+    @Column(unique = true, nullable = false)
+    @Email(regexp = ".*@.*\\..*", message = "Email debe ser válido")
+    @NotBlank(message = "El email no puede estar vacío")
+    private String email;
+
+    @NotBlank(message = "La contraseña no puede estar vacía")
+    @Length(min = 5, message = "La contraseña debe tener al menos 5 caracteres")
     @Column(nullable = false)
     private String password;
 
-    private String nombre;
-    private String apellidos;
-    private String email;
+    @Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @Column(columnDefinition = "boolean default false")
+    @Builder.Default
+    private Boolean isDeleted = false;
+
+    // Relación con los Roles. EAGER para que los cargue al iniciar sesión.
+    @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private Set<Role> roles;
+
+    // -- Métodos de UserDetails (Obligatorios para Spring Security) --
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
+                .collect(Collectors.toSet());
     }
 
-    @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
-    @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return true; }
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() { return true; }
+
+    @Override
+    public boolean isAccountNonLocked() { return true; }
+
+    @Override
+    public boolean isCredentialsNonExpired() { return true; }
+
+    @Override
+    public boolean isEnabled() { return !isDeleted; }
 }
