@@ -24,28 +24,27 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(RegisterRequest request) {
-        // Aquí podrías validar si el usuario existe antes de guardar
         var user = User.builder()
-                .nombre(request.getNombre())
-                .apellidos(request.getApellidos())
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .roles(Set.of(Role.USER)) // Por defecto USER
+                .nombre(request.nombre())
+                .apellidos(request.apellidos())
+                .username(request.username())
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .roles(Set.of(Role.USER)) // ASIGNA EL ROL USER AL REGISTRARSE
                 .build();
 
         userRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
-        return AuthResponse.builder().token(jwtToken).build();
+        return new AuthResponse(jwtToken);
     }
 
     public AuthResponse login(LoginRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(request.username(), request.password())
         );
-        var user = userRepository.findByUsername(request.getUsername())
+        var user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new IllegalArgumentException("Usuario o contraseña inválidos"));
         var jwtToken = jwtService.generateToken(user);
-        return AuthResponse.builder().token(jwtToken).build();
+        return new AuthResponse(jwtToken);
     }
 }

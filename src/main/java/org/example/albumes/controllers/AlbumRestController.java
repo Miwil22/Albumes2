@@ -1,15 +1,15 @@
 package org.example.albumes.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.albumes.dto.AlbumCreateDto;
 import org.example.albumes.dto.AlbumResponseDto;
 import org.example.albumes.dto.AlbumUpdateDto;
 import org.example.albumes.services.AlbumService;
 import org.example.utils.pagination.PageResponse;
 import org.example.utils.pagination.PaginationLinksUtils;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize; // IMPORTANTE
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -46,8 +47,7 @@ public class AlbumRestController {
             @RequestParam(defaultValue = "asc") String direction,
             HttpServletRequest request
     ){
-        log.info("Buscando álbumes con nombre={}, artista={}, isDeleted={}, page={}, size={}, sort={}",
-                nombre, artista, isDeleted, page, size, sortBy);
+        // ... Logica de paginacion igual ...
         Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() :
                 Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -60,44 +60,44 @@ public class AlbumRestController {
 
     @GetMapping("/{id}")
     public ResponseEntity<AlbumResponseDto> getById(@PathVariable Long id) {
-        log.info("Buscando álbum por id={}", id);
         return ResponseEntity.ok(albumService.findById(id));
     }
 
+    // --- MÉTODOS PROTEGIDOS (SOLO ADMIN) ---
+
     @PostMapping()
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AlbumResponseDto> create(@Valid @RequestBody AlbumCreateDto createDto) {
-        log.info("Creando álbum : {}", createDto);
         var saved = albumService.save(createDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AlbumResponseDto> update(@PathVariable Long id, @Valid @RequestBody AlbumUpdateDto updateDto) {
-        log.info("Actualizando álbum id={} con álbum={}", id, updateDto);
         return ResponseEntity.ok(albumService.update(id, updateDto));
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AlbumResponseDto> updatePartial(@PathVariable Long id, @Valid @RequestBody AlbumUpdateDto updateDto) {
-        log.info("Actualizando parcialmente álbum con id={} con álbum={}",id, updateDto);
         return ResponseEntity.ok(albumService.update(id, updateDto));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        log.info("Borrando álbum por id: {}", id);
         albumService.deleteById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    // Manejo de errores
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
+    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         BindingResult result = ex.getBindingResult();
-        problemDetail.setDetail("Falló la validación para el objeto='" + result.getObjectName()
-                + "'. " + "Núm. errores: " + result.getErrorCount());
+        problemDetail.setDetail("Error de validación: " + result.getErrorCount() + " errores.");
         Map<String, String> errores = new HashMap<>();
         result.getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
