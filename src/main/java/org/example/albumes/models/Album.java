@@ -40,9 +40,6 @@ public class Album {
     @Column(unique = true, updatable = false, nullable = false)
     private UUID uuid = UUID.randomUUID();
 
-    @Column(columnDefinition = "boolean default false")
-    @Builder.Default
-    private Boolean isDeleted = false;
 
     // Relación: Muchos álbumes pertenecen a un artista
     @ManyToOne
