@@ -30,7 +30,6 @@ public class UserController {
         return ResponseEntity.ok(toResponse(updated));
     }
 
-    // Método auxiliar manual para no depender del Mapper y evitar errores
     private UserResponse toResponse(User user) {
         return new UserResponse(
                 user.getId(),
@@ -38,7 +37,7 @@ public class UserController {
                 user.getApellidos(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getRole()
+                user.getRoles()
         );
     }
 }

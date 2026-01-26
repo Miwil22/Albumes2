@@ -1,9 +1,11 @@
 package org.example.users.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import org.example.artistas.models.Artista; // <--- IMPORTANTE: Importar Artista
 import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -64,6 +66,14 @@ public class User implements UserDetails {
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
+
+    // --- ESTO ES LO QUE FALTABA ---
+    // Relación con Artista (User es el dueño de la relación)
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "artista_id") // Crea la columna 'artista_id' en la tabla USUARIOS
+    @JsonIgnoreProperties("usuario") // Evita bucle infinito al serializar a JSON
+    private Artista artista;
+    // ------------------------------
 
     // -- Métodos de UserDetails (Obligatorios para Spring Security) --
 
