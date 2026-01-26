@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.config.security.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,9 +29,11 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req -> req
-                        // Rutas públicas: auth (login/registro) y GET de álbumes
+                        // Rutas públicas: auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/albumes/**").permitAll()
+                        // REQUISITO: Verse por (Albumes Y Artistas)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/albumes/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/artistas/**").permitAll()
                         // Cualquier otra requiere autenticación
                         .anyRequest().authenticated()
                 )
