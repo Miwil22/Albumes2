@@ -1,48 +1,43 @@
 package org.example.albumes.models;
 
-import org.example.artistas.models.Artista;
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.artistas.models.Artista;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 
-@Builder
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
-@Table(name = "ALBUMES")
+@Table(name = "albumes")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Album {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false)
-    private String nombre;
+    private String titulo;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "artista_id", nullable = false)
+    private Artista artista;
+
+    @Column(nullable = false)
+    private LocalDate fechaLanzamiento;
 
     @Column(nullable = false)
     private String genero;
 
+    private String portada;
+
+    @Column(columnDefinition = "TEXT")
+    private String descripcion;
+
+    @Builder.Default
     @Column(nullable = false)
-    private Float precio;
-
-    @Builder.Default
-    @Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Builder.Default
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
-    @Builder.Default
-    @Column(unique = true, updatable = false, nullable = false)
-    private UUID uuid = UUID.randomUUID();
-
-
-    // Relación: Muchos álbumes pertenecen a un artista
-    @ManyToOne
-    @JoinColumn(name = "artista_id")
-    private Artista artista;
+    private Double precio = 0.0;
 }

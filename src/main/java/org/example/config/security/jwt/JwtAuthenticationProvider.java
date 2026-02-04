@@ -3,27 +3,27 @@ package org.example.config.security.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.Base64;
 
-@Service
-public class JwtService {
+@Component
+@Slf4j
+public class JwtAuthenticationProvider {
 
     @Value("${jwt.secret}")
     private String jwtSigningKey;
 
     @Value("${jwt.expiration}")
-    private Long jwtExpiration; // En segundos (ej: 86400)
+    private Long jwtExpiration;
 
     public String extractUserName(String token) {
-        return extractClaim(token, DecodedJWT::getSubject);
+        return JWT.decode(token).getSubject();
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -35,40 +35,19 @@ public class JwtService {
         return (userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
-    private <T> T extractClaim(String token, Function<DecodedJWT, T> claimsResolvers) {
-        final DecodedJWT decodedJWT = JWT.decode(token);
-        return claimsResolvers.apply(decodedJWT);
-    }
-
     private String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        Algorithm algorithm = Algorithm.HMAC512(getSigningKey());
+        Algorithm algorithm = Algorithm.HMAC512(jwtSigningKey.getBytes());
         Date now = new Date();
         Date expirationDate = new Date(now.getTime() + (1000 * jwtExpiration));
 
         return JWT.create()
-                .withHeader(createHeader())
                 .withSubject(userDetails.getUsername())
                 .withIssuedAt(now)
                 .withExpiresAt(expirationDate)
-                .withClaim("extraClaims", extraClaims)
                 .sign(algorithm);
     }
 
     private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, DecodedJWT::getExpiresAt);
-    }
-
-    private Map<String, Object> createHeader() {
-        Map<String, Object> header = new HashMap<>();
-        header.put("typ", "JWT");
-        return header;
-    }
-
-    private byte[] getSigningKey() {
-        return Base64.getEncoder().encode(jwtSigningKey.getBytes());
+        return JWT.decode(token).getExpiresAt().before(new Date());
     }
 }

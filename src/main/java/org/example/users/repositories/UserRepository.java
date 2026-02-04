@@ -2,8 +2,13 @@ package org.example.users.repositories;
 
 import org.example.users.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+import java.util.Optional;
+import java.util.UUID;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificationExecutor<User> {
     Optional<User> findByUsername(String username);
 }

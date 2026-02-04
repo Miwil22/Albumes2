@@ -1,7 +1,7 @@
 package org.example.users.services;
 
 import lombok.RequiredArgsConstructor;
-import org.example.config.security.jwt.JwtService;
+import org.example.config.security.jwt.JwtAuthenticationProvider;
 import org.example.users.dto.AuthResponse;
 import org.example.users.dto.LoginRequest;
 import org.example.users.dto.RegisterRequest;
@@ -20,7 +20,7 @@ import java.util.Set;
 public class AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final JwtAuthenticationProvider jwtService;
     private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(RegisterRequest request) {

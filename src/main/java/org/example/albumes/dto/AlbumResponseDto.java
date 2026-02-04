@@ -5,21 +5,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import java.time.LocalDate;
 
-@Builder
 @Data
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class AlbumResponseDto {
-    private Long id;
-    private String nombre;
-    private String artista; // Aquí va el nombre del artista (String), no el objeto
+    private String id;
+    private String titulo;
+    private String artista; // Nombre del artista
+    private String artistaId; // UUID del artista
+    private LocalDate fechaLanzamiento;
     private String genero;
-    private Float precio;
-
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private UUID uuid;
+    private String portada;
+    private String descripcion;
+    private Double precio;
 }

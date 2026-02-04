@@ -1,21 +1,35 @@
 package org.example.albumes.dto;
 
-import org.example.albumes.validators.GeneroValido;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.PastOrPresent;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.example.albumes.validators.GeneroValido;
 
-@Builder
+import java.time.LocalDate;
+
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AlbumUpdateDto {
-    private final String nombre;
+
+    private String titulo;
+
+    private String artistaId;
+
+    @PastOrPresent(message = "La fecha de lanzamiento no puede ser futura")
+    private LocalDate fechaLanzamiento;
 
     @GeneroValido
-    private final String genero;
+    private String genero;
 
-    // Una vez creado el álbum, no se puede cambiar el artista
-    //private final String artista;
+    private String portada;
 
-    @PositiveOrZero(message = "El precio debe ser 0 o mayor")
-    private final Float precio;
+    private String descripcion;
+
+    @Min(value = 0, message = "El precio no puede ser negativo")
+    private Double precio;
 }

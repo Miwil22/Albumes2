@@ -3,8 +3,6 @@ package org.example.albumes.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.albumes.dto.AlbumCreateDto;
 import org.example.albumes.dto.AlbumResponseDto;
-import org.example.albumes.dto.AlbumUpdateDto;
-import org.example.albumes.exceptions.AlbumNotFoundException;
 import org.example.albumes.mappers.AlbumMapper;
 import org.example.albumes.models.Album;
 import org.example.albumes.repositories.AlbumRepository;
@@ -13,7 +11,7 @@ import org.example.artistas.services.ArtistaService;
 import org.example.config.websockets.WebSocketConfig;
 import org.example.config.websockets.WebSocketHandler;
 import org.example.websockets.notifications.mappers.AlbumNotificationMapper;
-import org.example.websockets.notifications.models.Notificacion;
+import org.example.websockets.notifications.models.Notification;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -131,7 +129,7 @@ class AlbumServiceImplTest {
         doNothing().when(webSocketService).sendMessage(any());
 
         // Act
-        albumService.onChange(Notificacion.Tipo.CREATE, album1);
+        albumService.onChange(Notification.Tipo.CREATE, album1);
 
         // AÑADIR SLEEP PARA QUE PASE EL TEST
         Thread.sleep(100);

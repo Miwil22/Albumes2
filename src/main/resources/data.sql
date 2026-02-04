@@ -1,52 +1,19 @@
--- 1. INSERTAR ARTISTAS
--- IDs: 1, 2, 3
-INSERT INTO ARTISTAS (id, nombre, created_at, updated_at, is_deleted)
-VALUES (1, 'Metallica', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false),
-       (2, 'Dua Lipa', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false),
-       (3, 'Queen', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false);
+-- Insertar artistas
+INSERT INTO artistas (id, nombre, genero_musical, pais_origen, created_at, updated_at)
+VALUES
+    ('a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1', 'The Beatles', 'Rock', 'Reino Unido', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2', 'Queen', 'Rock', 'Reino Unido', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('c3c3c3c3-c3c3-c3c3-c3c3-c3c3c3c3c3c3', 'Michael Jackson', 'Pop', 'Estados Unidos', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
--- 2. INSERTAR USUARIOS
--- La contraseña para todos es 'admin123' -> hash BCrypt: $2a$10$R/En/sK.s3D/oG6vI.p0O.a.z1.g2.q3.r4.s5.t6
+-- Insertar álbumes
+INSERT INTO albumes (id, titulo, genero, anio_lanzamiento, artista_id, created_at, updated_at)
+VALUES
+    ('d4d4d4d4-d4d4-d4d4-d4d4-d4d4d4d4d4d4', 'Abbey Road', 'Rock', 1969, 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('e5e5e5e5-e5e5-e5e5-e5e5-e5e5e5e5e5e5', 'A Night at the Opera', 'Rock', 1975, 'b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('f6f6f6f6-f6f6-f6f6-f6f6-f6f6f6f6f6f6', 'Thriller', 'Pop', 1982, 'c3c3c3c3-c3c3-c3c3-c3c3-c3c3c3c3c3c3', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
--- Usuario 1: ADMIN (Sin artista asociado)
-INSERT INTO USUARIOS (id, nombre, apellidos, username, email, password, created_at, updated_at, is_deleted, artista_id)
-VALUES (1, 'Admin', 'Jefe', 'admin', 'admin@albumes.com', '$2a$10$R/En/sK.s3D/oG6vI.p0O.a.z1.g2.q3.r4.s5.t6',
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, NULL);
-
--- Usuario 2: USER NORMAL (Sin artista asociado)
-INSERT INTO USUARIOS (id, nombre, apellidos, username, email, password, created_at, updated_at, is_deleted, artista_id)
-VALUES (2, 'Pepe', 'Usuario', 'user', 'pepe@albumes.com', '$2a$10$R/En/sK.s3D/oG6vI.p0O.a.z1.g2.q3.r4.s5.t6',
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, NULL);
-
--- Usuario 3: USER QUE ES ARTISTA (Asociado a Dua Lipa - ID 2)
-INSERT INTO USUARIOS (id, nombre, apellidos, username, email, password, created_at, updated_at, is_deleted, artista_id)
-VALUES (3, 'Dua', 'Lipa', 'dualipa', 'dua@music.com', '$2a$10$R/En/sK.s3D/oG6vI.p0O.a.z1.g2.q3.r4.s5.t6',
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, 2);
-
-
--- 3. INSERTAR ROLES
--- Tabla generada por @ElementCollection en User.java (normalmente 'user_roles' o 'usuarios_roles')
--- Si te falla el nombre de tabla, prueba cambiando USER_ROLES por USUARIOS_ROLES
-INSERT INTO USER_ROLES (user_id, roles)
-VALUES (1, 'ADMIN'), -- El admin tiene rol ADMIN
-       (1, 'USER'),  -- Y también USER (opcional)
-       (2, 'USER'),  -- Pepe es solo USER
-       (3, 'USER');
--- Dua Lipa es USER
-
-
--- 4. INSERTAR ALBUMES
--- Metallica (ID 1)
-INSERT INTO ALBUMES (id, nombre, genero, precio, created_at, updated_at, uuid, is_deleted, artista_id)
-VALUES (1, 'Master of Puppets', 'Metal', 19.99, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, RANDOM_UUID(), false, 1),
-       (2, 'Ride the Lightning', 'Metal', 15.50, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, RANDOM_UUID(), false, 1);
-
--- Dua Lipa (ID 2)
-INSERT INTO ALBUMES (id, nombre, genero, precio, created_at, updated_at, uuid, is_deleted, artista_id)
-VALUES (3, 'Future Nostalgia', 'Pop', 25.00, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, RANDOM_UUID(), false, 2),
-       (4, 'Dua Lipa Deluxe', 'Pop', 12.99, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, RANDOM_UUID(), false, 2);
-
--- Queen (ID 3)
-INSERT INTO ALBUMES (id, nombre, genero, precio, created_at, updated_at, uuid, is_deleted, artista_id)
-VALUES (5, 'A Night at the Opera', 'Rock', 30.00, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, RANDOM_UUID(), false, 3),
-       (6, 'News of the World', 'Rock', 18.75, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, RANDOM_UUID(), false, 3);
+-- Insertar usuarios (contraseña: password123)
+INSERT INTO usuarios (id, username, password, email, roles, created_at, updated_at)
+VALUES
+    ('u1u1u1u1-u1u1-u1u1-u1u1-u1u1u1u1u1u1', 'admin', '$2a$10$vPaqZvZkz6jhb7U7k/V/v.vE9F7F7F7F7F7F7F7F7F7F7F7F7F7F7', 'admin@music.com', 'ADMIN,USER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+    ('u2u2u2u2-u2u2-u2u2-u2u2-u2u2u2u2u2u2', 'user', '$2a$10$vPaqZvZkz6jhb7U7k/V/v.vE9F7F7F7F7F7F7F7F7F7F7F7F7F7F7', 'user@music.com', 'USER', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

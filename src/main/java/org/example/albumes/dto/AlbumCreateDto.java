@@ -1,23 +1,37 @@
 package org.example.albumes.dto;
 
-import org.example.albumes.validators.GeneroValido;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.example.albumes.validators.GeneroValido;
 
-@Builder
+import java.time.LocalDate;
+
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AlbumCreateDto {
-    @NotBlank(message = "El nombre no puede estar vacío")
-    private final String nombre;
 
-    @NotBlank(message = "El artista no puede estar vacío")
-    private final String artista;
+    @NotBlank(message = "El título no puede estar vacío")
+    private String titulo;
+
+    @NotBlank(message = "El artista es obligatorio")
+    private String artistaId;
+
+    @NotNull(message = "La fecha de lanzamiento es obligatoria")
+    @PastOrPresent(message = "La fecha de lanzamiento no puede ser futura")
+    private LocalDate fechaLanzamiento;
 
     @GeneroValido
-    private final String genero;
+    private String genero;
 
-    @NotNull(message = "El precio no puede ser nulo")
-    @PositiveOrZero(message = "El precio debe ser 0 o mayor")
-    private final Float precio;
+    private String portada;
+
+    private String descripcion;
+
+    @Min(value = 0, message = "El precio no puede ser negativo")
+    private Double precio;
 }
