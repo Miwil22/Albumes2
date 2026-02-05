@@ -1,10 +1,5 @@
 package org.example.users.controllers;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,19 +7,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.users.dto.UserInfoResponse;
 import org.example.users.dto.UserRequest;
 import org.example.users.dto.UserResponse;
-import org.example.users.mappers.UsersMapper;
 import org.example.users.models.User;
 import org.example.users.services.UsersService;
 import org.example.utils.pagination.PageResponse;
 import org.example.utils.pagination.PaginationLinksUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -38,108 +33,99 @@ import java.util.Optional;
 @RequestMapping("/${api.version}/usuarios")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Usuarios", description = "Endpoint de Usuarios de nuestra API REST")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('USER')")
 public class UsersRestController {
 
     private final UsersService usersService;
-    private final UsersMapper usersMapper;
     private final PaginationLinksUtils paginationLinksUtils;
 
-    @Operation(summary = "Obtiene todos los usuarios", description = "Obtiene una lista de usuarios con paginación y filtros opcionales")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Página de usuarios"),
-    })
     @GetMapping
-    public ResponseEntity<PageResponse<UserResponse>> getAllUsers(
-            @Parameter(description = "Username a buscar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PageResponse<UserResponse>> findAll(
             @RequestParam(required = false) Optional<String> username,
-            @Parameter(description = "Role a buscar")
-            @RequestParam(required = false) Optional<String> role,
-            @Parameter(description = "Número de página") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Tamaño de la página") @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "Campo de ordenación") @RequestParam(defaultValue = "id") String sortBy,
-            @Parameter(description = "Dirección de ordenación") @RequestParam(defaultValue = "asc") String direction,
+            @RequestParam(required = false) Optional<String> email,
+            @RequestParam(required = false) Optional<Boolean> isDeleted,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
             HttpServletRequest request
     ) {
-        log.info("Buscando todos los usuarios con username: {}, role: {}", username, role);
+        log.info("findAll: username: {}, email: {}, isDeleted: {}", username, email, isDeleted);
         Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(request.getRequestURL().toString());
-        Page<UserResponse> pageResult = usersService.findAll(username, role, PageRequest.of(page, size, sort))
-                .map(usersMapper::toUserResponse);
+        Page<UserResponse> pageResult = usersService.findAll(username, email, isDeleted, PageRequest.of(page, size, sort));
+
         return ResponseEntity.ok()
                 .header("link", paginationLinksUtils.createLinkHeader(pageResult, uriBuilder))
                 .body(PageResponse.of(pageResult, sortBy, direction));
     }
 
-    @Operation(summary = "Obtiene un usuario por su id", description = "Obtiene un usuario por su id")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Usuario"),
-            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
-    })
     @GetMapping("/{id}")
-    public ResponseEntity<UserInfoResponse> getUserById(@Parameter(description = "ID del usuario") @PathVariable String id) {
-        log.info("Obteniendo usuario con id: {}", id);
-        return ResponseEntity.ok(usersMapper.toUserInfoResponse(usersService.findById(id)));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserInfoResponse> findById(@PathVariable String id) {
+        log.info("findById: id: {}", id);
+        return ResponseEntity.ok(usersService.findById(id));
     }
 
-    @Operation(summary = "Crea un nuevo usuario", description = "Crea un nuevo usuario")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Usuario creado"),
-            @ApiResponse(responseCode = "400", description = "Datos no válidos"),
-    })
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest userRequest) {
-        log.info("Creando usuario: {}", userRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(usersMapper.toUserResponse(usersService.save(userRequest)));
+        log.info("save: userRequest: {}", userRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(usersService.save(userRequest));
     }
 
-    @Operation(summary = "Actualiza un usuario", description = "Actualiza un usuario existente")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Usuario actualizado"),
-            @ApiResponse(responseCode = "400", description = "Datos no válidos"),
-            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
-    })
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(
-            @Parameter(description = "ID del usuario") @PathVariable String id,
-            @Valid @RequestBody UserRequest userRequest) {
-        log.info("Actualizando usuario con id: {}", id);
-        return ResponseEntity.ok(usersMapper.toUserResponse(usersService.update(id, userRequest)));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponse> updateUser(@PathVariable String id, @Valid @RequestBody UserRequest userRequest) {
+        log.info("update: id: {}, userRequest: {}", id, userRequest);
+        return ResponseEntity.ok(usersService.update(id, userRequest));
     }
 
-    @Operation(summary = "Borra un usuario", description = "Borra un usuario del sistema")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Usuario borrado"),
-            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
-    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@Parameter(description = "ID del usuario") @PathVariable String id) {
-        log.info("Borrando usuario con id: {}", id);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
+        log.info("delete: id: {}", id);
         usersService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Obtiene el usuario autenticado", description = "Obtiene la información del usuario autenticado")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Usuario autenticado"),
-    })
     @GetMapping("/me/profile")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<UserInfoResponse> getMe(@AuthenticationPrincipal User user) {
-        log.info("Obteniendo usuario autenticado: {}", user.getUsername());
-        return ResponseEntity.ok(usersMapper.toUserInfoResponse(user));
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<UserInfoResponse> me(@AuthenticationPrincipal User user) {
+        log.info("Obteniendo usuario actual: {}", user.getUsername());
+        return ResponseEntity.ok(usersService.findById(user.getId().toString()));
     }
 
+    @PutMapping("/me/profile")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<UserResponse> updateMe(@AuthenticationPrincipal User user, @Valid @RequestBody UserRequest userRequest) {
+        log.info("updateMe: user: {}", user.getUsername());
+        return ResponseEntity.ok(usersService.update(user.getId().toString(), userRequest));
+    }
+
+    @DeleteMapping("/me/profile")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Void> deleteMe(@AuthenticationPrincipal User user) {
+        log.info("deleteMe: user: {}", user.getUsername());
+        usersService.deleteById(user.getId().toString());
+        return ResponseEntity.noContent().build();
+    }
+
+    // Manejo de errores de validación igual que el profesor
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
+    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        BindingResult result = ex.getBindingResult();
+        problemDetail.setDetail("Falló la validación: " + result.getErrorCount() + " errores.");
+        Map<String, String> errores = new HashMap<>();
+        result.getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
+            errores.put(fieldName, errorMessage);
         });
-        return errors;
+        problemDetail.setProperty("errores", errores);
+        return problemDetail;
     }
 }
