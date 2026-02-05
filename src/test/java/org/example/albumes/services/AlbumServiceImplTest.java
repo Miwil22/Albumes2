@@ -11,7 +11,7 @@ import org.example.artistas.services.ArtistaService;
 import org.example.config.websockets.WebSocketConfig;
 import org.example.config.websockets.WebSocketHandler;
 import org.example.websockets.notifications.mappers.AlbumNotificationMapper;
-import org.example.websockets.notifications.models.Notification;
+import org.example.websockets.notifications.models.Notificacion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

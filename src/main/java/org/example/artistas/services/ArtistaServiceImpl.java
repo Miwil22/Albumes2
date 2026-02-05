@@ -1,14 +1,14 @@
 package org.example.artistas.services;
 
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.artistas.dto.ArtistaRequestDto;
 import org.example.artistas.exceptions.ArtistaConflictException;
 import org.example.artistas.exceptions.ArtistaNotFoundException;
 import org.example.artistas.mappers.ArtistaMapper;
 import org.example.artistas.models.Artista;
 import org.example.artistas.repositories.ArtistaRepository;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -31,6 +31,7 @@ public class ArtistaServiceImpl implements ArtistaService {
     @Override
     public Page<Artista> findAll(Optional<String> nombre, Optional<Boolean> isDeleted, Pageable pageable) {
         log.info("Buscando artistas por nombre: {}, isDeleted {}", nombre, isDeleted);
+
         Specification<Artista> specNombre = (root, query, criteriaBuilder) ->
                 nombre.map(n -> criteriaBuilder.like(criteriaBuilder.lower(root.get("nombre")), "%" + n.toLowerCase() + "%"))
                         .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
@@ -45,7 +46,7 @@ public class ArtistaServiceImpl implements ArtistaService {
 
     @Override
     public Artista findByNombre(String nombre) {
-        log.info("Buscando artista por nombre: {}", nombre);
+        log.info("Buscando artistas por nombre: {}", nombre);
         return artistaRepository.findByNombreEqualsIgnoreCase(nombre)
                 .orElseThrow(() -> new ArtistaNotFoundException("Artista con nombre " + nombre + " no encontrado"));
     }
@@ -85,7 +86,8 @@ public class ArtistaServiceImpl implements ArtistaService {
     @Transactional
     public void deleteById(Long id) {
         log.info("Borrando artista por id: {}", id);
-        Artista artista = findById(id);
+        findById(id);
+
         if (artistaRepository.existsAlbumById(id)) {
             String mensaje = "No se puede borrar el artista con id: " + id + " porque tiene álbumes asociados";
             log.warn(mensaje);

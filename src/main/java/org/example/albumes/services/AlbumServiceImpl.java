@@ -2,8 +2,8 @@ package org.example.albumes.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.config.websockets.WebSocketConfig;
-import org.example.config.websockets.WebSocketHandler;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.albumes.dto.AlbumCreateDto;
 import org.example.albumes.dto.AlbumResponseDto;
 import org.example.albumes.dto.AlbumUpdateDto;
@@ -15,11 +15,11 @@ import org.example.albumes.models.Album;
 import org.example.albumes.repositories.AlbumRepository;
 import org.example.artistas.models.Artista;
 import org.example.artistas.repositories.ArtistaRepository;
+import org.example.config.websockets.WebSocketConfig;
+import org.example.config.websockets.WebSocketHandler;
 import org.example.websockets.notifications.dto.AlbumNotificationResponse;
 import org.example.websockets.notifications.mappers.AlbumNotificationMapper;
 import org.example.websockets.notifications.models.Notificacion;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
@@ -58,7 +58,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
 
     @Override
     public Page<AlbumResponseDto> findAll(Optional<String> titulo, Optional<String> genero, Optional<Boolean> isDeleted, Pageable pageable) {
-        log.info("Buscando albumes por titulo: {}, genero: {} , isDeleted {}", titulo, genero, isDeleted);
         Specification<Album> specTitulo = (root, query, criteriaBuilder) ->
                 titulo.map(t -> criteriaBuilder.like(criteriaBuilder.lower(root.get("titulo")), "%" + t.toLowerCase() + "%"))
                         .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
@@ -80,7 +79,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     @Cacheable(key = "#id")
     @Override
     public AlbumResponseDto findById(Long id) {
-        log.info("Buscando album por id {}", id);
         return albumMapper.toAlbumResponseDto(albumRepository.findById(id)
                 .orElseThrow(()-> new AlbumNotFoundException(id)));
     }
@@ -88,7 +86,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     @Cacheable(key = "#uuid")
     @Override
     public AlbumResponseDto findByUuid(String uuid) {
-        log.info("Buscando album por uuid: {}", uuid);
         try {
             var myUUID = UUID.fromString(uuid);
             return albumMapper.toAlbumResponseDto(albumRepository.findByUuid(myUUID)
@@ -100,14 +97,12 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
 
     @Override
     public Page<AlbumResponseDto> findByUsuarioId(Long usuarioId, Pageable pageable) {
-        log.info("Obteniendo albumes del usuario con id: {}", usuarioId);
         return albumRepository.findByUsuarioId(usuarioId, pageable)
                 .map(albumMapper::toAlbumResponseDto);
     }
 
     @Override
     public AlbumResponseDto findByUsuarioId(Long usuarioId, Long idAlbum) {
-        log.info("Obteniendo albumes del usuario con id: {}", usuarioId);
         var albumes = albumRepository.findByUsuarioId(usuarioId);
         var albumEncontrado = albumes.stream().filter(a ->  a.getId().equals(idAlbum))
                 .findFirst().orElse(null);
@@ -118,7 +113,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     }
 
     private Artista checkArtista(String nombreArtista) {
-        log.info("Buscando artista por nombre: {}", nombreArtista);
         var artista = artistaRepository.findByNombreEqualsIgnoreCase(nombreArtista);
         if (artista.isEmpty() || artista.get().getIsDeleted()) {
             throw new AlbumBadRequestException("El artista " + nombreArtista + " no existe o está borrado");
@@ -129,7 +123,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     @CachePut(key = "#result.id")
     @Override
     public AlbumResponseDto save(AlbumCreateDto albumCreateDto) {
-        log.info("Guardando album: {}", albumCreateDto);
         Artista artista = checkArtista(albumCreateDto.getNombreArtista());
         Album albumSaved = albumRepository.save(
                 albumMapper.toAlbum(albumCreateDto, artista));
@@ -139,7 +132,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
 
     @Override
     public AlbumResponseDto save(AlbumCreateDto albumCreateDto, Long usuarioId) {
-        log.info("Guardando album: {} de usuarioId: {}", albumCreateDto, usuarioId);
         Artista artista = checkArtista(albumCreateDto.getNombreArtista());
         var usuario = artista.getUsuario();
         if ((usuario != null) && (!usuario.getId().equals(usuarioId))) {
@@ -154,7 +146,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     @CachePut(key = "#result.id")
     @Override
     public AlbumResponseDto update(Long id, AlbumUpdateDto albumUpdateDto) {
-        log.info("Actualizando album por id: {}", id);
         var albumActual = albumRepository.findById(id).orElseThrow(()-> new AlbumNotFoundException(id));
         Album albumUpdated =  albumRepository.save(
                 albumMapper.toAlbum(albumUpdateDto, albumActual));
@@ -165,7 +156,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     @CachePut(key = "#result.id")
     @Override
     public AlbumResponseDto update(Long id, AlbumUpdateDto albumUpdateDto, Long usuarioId) {
-        log.info("Actualizando album por id: {}", id);
         var albumActual = albumRepository.findById(id).orElseThrow(()-> new AlbumNotFoundException(id));
         var usuario = albumActual.getArtista().getUsuario();
         if ((usuario != null) && (!usuario.getId().equals(usuarioId))) {
@@ -181,7 +171,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     @CacheEvict(key = "#id")
     @Override
     public void deleteById(Long id) {
-        log.debug("Borrando album por id: {}", id);
         Album albumDeleted = albumRepository.findById(id).orElseThrow(()-> new AlbumNotFoundException(id));
         albumRepository.deleteById(id);
         onChange(Notificacion.Tipo.DELETE, albumDeleted);
@@ -190,7 +179,6 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     @CacheEvict(key = "#id")
     @Override
     public void deleteById(Long id, Long usuarioId) {
-        log.debug("Borrando album por id: {}", id);
         Album albumDeleted = albumRepository.findById(id).orElseThrow(()-> new AlbumNotFoundException(id));
         var usuario = albumDeleted.getArtista().getUsuario();
         if ((usuario != null) && (!usuario.getId().equals(usuarioId))) {
@@ -201,10 +189,7 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
     }
 
     void onChange(Notificacion.Tipo tipo, Album data) {
-        log.debug("Servicio de albumes onChange con tipo: {} y datos: {}", tipo, data);
-
         if (webSocketService == null) {
-            log.warn("No se ha podido enviar la notificación a los clientes ws, no se ha encontrado el servicio");
             webSocketService = this.webSocketConfig.webSocketAlbumesHandler();
         }
 
@@ -216,22 +201,20 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
                     LocalDateTime.now().toString()
             );
 
-            String json = objectMapper.writeValueAsString((notificacion));
+            String json = objectMapper.writeValueAsString(notificacion);
 
-            log.info("Enviando mensaje a los clientes ws");
             Thread senderThread = new Thread(() -> {
                 try {
                     webSocketService.sendMessage(json);
                 } catch (Exception e) {
-                    log.error("Error al enviar el mensaje a través del servicio WebSocket", e);
+                    log.error("Error enviando WS", e);
                 }
             });
             senderThread.setName("WebSocketAlbum-" + data.getId());
             senderThread.setDaemon(true);
             senderThread.start();
-            log.info("Hilo de websocket iniciado: {}", data.getId());
         } catch (JsonProcessingException e) {
-            log.error("Error al convertir la notificación a JSON", e);
+            log.error("Error JSON", e);
         }
     }
 }
