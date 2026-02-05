@@ -13,25 +13,23 @@ import org.hibernate.validator.constraints.Length;
 @AllArgsConstructor
 @Builder
 public class UserSignUpRequest {
-
-    @NotBlank(message = "Nombre no puede estar vacío")
+    @NotBlank(message = "El nombre no puede estar vacío")
     private String nombre;
 
-    @NotBlank(message = "Apellidos no puede estar vacío")
+    @NotBlank(message = "Los apellidos no pueden estar vacíos")
     private String apellidos;
 
-    @NotBlank(message = "Username no puede estar vacío")
+    @NotBlank(message = "El username no puede estar vacío")
     private String username;
 
-    @Email(regexp = ".*@.*\\..*", message = "Email debe ser válido")
-    @NotBlank(message = "Email no puede estar vacío")
+    @Email(regexp = ".*@.*\\..*", message = "El email debe ser válido")
+    @NotBlank(message = "El email no puede estar vacío")
     private String email;
 
-    @NotBlank(message = "Password no puede estar vacío")
-    @Length(min = 5, message = "Password debe tener al menos 5 caracteres")
+    @NotBlank(message = "La contraseña no puede estar vacía")
+    @Length(min = 5, message = "La contraseña debe tener al menos 5 caracteres")
     private String password;
 
-    @NotBlank(message = "Password no puede estar vacío")
-    @Length(min = 5, message = "Password de comprobación debe tener al menos 5 caracteres")
+    @NotBlank(message = "La confirmación de la contraseña no puede estar vacía")
     private String passwordComprobacion;
 }

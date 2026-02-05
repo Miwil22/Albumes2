@@ -1,35 +1,24 @@
 package org.example.albumes.dto;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.PastOrPresent;
-import lombok.AllArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.example.albumes.validators.GeneroValido;
 
 import java.time.LocalDate;
 
-@Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
+@Schema(description = "Álbum a actualizar")
 public class AlbumUpdateDto {
+    @Schema(description = "Título del álbum", example = "Motomami")
+    private final String titulo;
 
-    private String titulo;
+    @Schema(description = "Género del álbum", example = "Pop")
+    private final String genero;
 
-    private String artistaId;
+    @Schema(description = "Fecha de lanzamiento", example = "2022-03-18")
+    private final LocalDate fechaLanzamiento;
 
-    @PastOrPresent(message = "La fecha de lanzamiento no puede ser futura")
-    private LocalDate fechaLanzamiento;
-
-    @GeneroValido
-    private String genero;
-
-    private String portada;
-
-    private String descripcion;
-
-    @Min(value = 0, message = "El precio no puede ser negativo")
-    private Double precio;
+    @Schema(description = "Precio del álbum", example = "19.99")
+    private final Double precio;
 }

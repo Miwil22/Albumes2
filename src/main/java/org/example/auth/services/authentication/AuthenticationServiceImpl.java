@@ -1,5 +1,7 @@
 package org.example.auth.services.authentication;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.auth.dto.JwtAuthResponse;
 import org.example.auth.dto.UserSignInRequest;
 import org.example.auth.dto.UserSignUpRequest;
@@ -10,20 +12,17 @@ import org.example.auth.repositories.AuthUsersRepository;
 import org.example.auth.services.jwt.JwtService;
 import org.example.users.models.Role;
 import org.example.users.models.User;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Set;
 
-@Slf4j
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthUsersRepository authUsersRepository;
     private final PasswordEncoder passwordEncoder;
@@ -40,7 +39,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .email(request.getEmail())
                     .nombre(request.getNombre())
                     .apellidos(request.getApellidos())
-                    .roles(Stream.of(Role.USER).collect(Collectors.toSet()))
+                    .roles(Set.of(Role.USER))
                     .build();
             try {
                 var userStored = authUsersRepository.save(user);

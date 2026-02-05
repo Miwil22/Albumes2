@@ -11,18 +11,16 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    // Asegúrate de que esta propiedad existe en application.properties o pon un valor por defecto
-    @Value("${api.version:v1}")
+    @Value("${api.version}")
     private String apiVersion;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(webSocketAlbumesHandler(), "/ws/" + apiVersion + "/albumes")
-                .setAllowedOrigins("*"); // AÑADIDO: Permite conexiones desde cualquier origen (evita errores CORS al probar)
+        registry.addHandler(webSocketAlbumesHandler(), "/ws/" + apiVersion + "/albumes");
     }
 
     @Bean
-    public WebSocketHandler webSocketAlbumesHandler(){
+    public WebSocketHandler webSocketAlbumesHandler() {
         return new WebSocketHandler("Albumes");
     }
 }

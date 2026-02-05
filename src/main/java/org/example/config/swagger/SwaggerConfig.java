@@ -14,12 +14,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class SwaggerConfig {
+class SwaggerConfig {
 
     @Value("${api.version}")
     private String apiVersion;
 
-    // Configuración para el botón "Authorize" con JWT
     private SecurityScheme createAPIKeyScheme() {
         return new SecurityScheme().type(SecurityScheme.Type.HTTP)
                 .bearerFormat("JWT")
@@ -27,30 +26,43 @@ public class SwaggerConfig {
     }
 
     @Bean
-    public OpenAPI apiInfo() {
+    OpenAPI apiInfo() {
         return new OpenAPI()
-                .info(new Info()
-                        .title("API REST Gestión de Álbumes")
-                        .version("1.0.0")
-                        .description("API para gestión de álbumes, artistas y usuarios.")
-                        .license(new License().name("Apache 2.0").url("http://springdoc.org"))
-                        .contact(new Contact()
-                                .name("Miguel Gómez Méndez")
-                                .email("mgm22796@email.com")))
-                .externalDocs(new ExternalDocumentation()
-                        .description("Repositorio GitHub")
-                        .url("https://github.com/Miwil22/Albumes2"))
-                // Añadimos la seguridad JWT globalmente a la doc
-                .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
-                .components(new Components().addSecuritySchemes("Bearer Authentication", createAPIKeyScheme()));
+                .info(
+                        new Info()
+                                .title("API REST Gestión de Albumes Spring Boot")
+                                .version("1.0.0")
+                                .description("API de ejemplo adaptada para Albumes")
+                                .termsOfService("https://example.org/license/")
+                                .license(
+                                        new License()
+                                                .name("CC BY-NC-SA 4.0")
+                                                .url("https://example.org/license/")
+                                )
+                                .contact(
+                                        new Contact()
+                                                .name("Tu Nombre")
+                                                .email("tu@email.com")
+                                )
+
+                )
+                .externalDocs(
+                        new ExternalDocumentation()
+                                .description("Documentación del Proyecto")
+                                .url("https://github.com/tu-usuario/Albumes2")
+                )
+                .addSecurityItem(new SecurityRequirement().
+                        addList("Bearer Authentication"))
+                .components(new Components().addSecuritySchemes
+                        ("Bearer Authentication", createAPIKeyScheme()));
     }
 
     @Bean
-    public GroupedOpenApi httpApi() {
+    GroupedOpenApi httpApi() {
         return GroupedOpenApi.builder()
                 .group("http")
-                .pathsToMatch("/api/" + apiVersion + "/**")
-                .displayName("API Álbumes")
+                .pathsToMatch("/api/" + apiVersion + "/albumes/**", "/api/" + apiVersion + "/artistas/**")
+                .displayName("API Gestión de Albumes")
                 .build();
     }
 }

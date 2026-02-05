@@ -1,63 +1,67 @@
 package org.example.albumes.mappers;
 
-import lombok.RequiredArgsConstructor;
 import org.example.albumes.dto.AlbumCreateDto;
 import org.example.albumes.dto.AlbumResponseDto;
 import org.example.albumes.dto.AlbumUpdateDto;
 import org.example.albumes.models.Album;
 import org.example.artistas.models.Artista;
-import org.example.artistas.repositories.ArtistaRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Component
-@RequiredArgsConstructor
 public class AlbumMapper {
-
-    private final ArtistaRepository artistaRepository;
-
-    public Album toAlbum(AlbumCreateDto dto) {
-        Artista artista = artistaRepository.findById(UUID.fromString(dto.getArtistaId()))
-                .orElseThrow(() -> new RuntimeException("Artista no encontrado"));
-
+    public Album toAlbum(AlbumCreateDto albumCreateDto, Artista artista) {
         return Album.builder()
-                .titulo(dto.getTitulo())
+                .id(null)
+                .titulo(albumCreateDto.getTitulo())
+                .genero(albumCreateDto.getGenero())
+                .fechaLanzamiento(albumCreateDto.getFechaLanzamiento())
                 .artista(artista)
-                .fechaLanzamiento(dto.getFechaLanzamiento())
-                .genero(dto.getGenero())
-                .portada(dto.getPortada())
-                .descripcion(dto.getDescripcion())
-                .precio(dto.getPrecio() != null ? dto.getPrecio() : 0.0)
+                .precio(albumCreateDto.getPrecio())
+                .uuid(UUID.randomUUID())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
     }
 
-    public Album toAlbum(AlbumUpdateDto dto, Album album) {
-        if (dto.getTitulo() != null) album.setTitulo(dto.getTitulo());
-        if (dto.getArtistaId() != null) {
-            Artista artista = artistaRepository.findById(UUID.fromString(dto.getArtistaId()))
-                    .orElseThrow(() -> new RuntimeException("Artista no encontrado"));
-            album.setArtista(artista);
-        }
-        if (dto.getFechaLanzamiento() != null) album.setFechaLanzamiento(dto.getFechaLanzamiento());
-        if (dto.getGenero() != null) album.setGenero(dto.getGenero());
-        if (dto.getPortada() != null) album.setPortada(dto.getPortada());
-        if (dto.getDescripcion() != null) album.setDescripcion(dto.getDescripcion());
-        if (dto.getPrecio() != null) album.setPrecio(dto.getPrecio());
-        return album;
+    public Album toAlbum(AlbumUpdateDto albumUpdateDto, Album album) {
+        return Album.builder()
+                .id(album.getId())
+                .titulo(albumUpdateDto.getTitulo() != null ? albumUpdateDto.getTitulo() : album.getTitulo())
+                .genero(albumUpdateDto.getGenero() != null ? albumUpdateDto.getGenero() : album.getGenero())
+                .fechaLanzamiento(albumUpdateDto.getFechaLanzamiento() != null ? albumUpdateDto.getFechaLanzamiento() : album.getFechaLanzamiento())
+                .artista(album.getArtista())
+                .precio(albumUpdateDto.getPrecio() != null ? albumUpdateDto.getPrecio() : album.getPrecio())
+                .createdAt(album.getCreatedAt())
+                .uuid(album.getUuid())
+                .build();
     }
 
     public AlbumResponseDto toAlbumResponseDto(Album album) {
         return AlbumResponseDto.builder()
-                .id(album.getId().toString())
+                .id(album.getId())
                 .titulo(album.getTitulo())
-                .artista(album.getArtista().getNombre())
-                .artistaId(album.getArtista().getId().toString())
-                .fechaLanzamiento(album.getFechaLanzamiento())
                 .genero(album.getGenero())
-                .portada(album.getPortada())
-                .descripcion(album.getDescripcion())
+                .fechaLanzamiento(album.getFechaLanzamiento())
+                .nombreArtista(album.getArtista().getNombre())
                 .precio(album.getPrecio())
+                .createdAt(album.getCreatedAt())
+                .updatedAt(album.getUpdatedAt())
+                .uuid(album.getUuid())
                 .build();
+    }
+
+    public List<AlbumResponseDto> toResponseDtoList(List<Album> albumes) {
+        return albumes.stream()
+                .map(this::toAlbumResponseDto)
+                .toList();
+    }
+
+    public Page<AlbumResponseDto> toResponseDtoPage(Page<Album> albumes) {
+        return albumes.map(this::toAlbumResponseDto);
     }
 }

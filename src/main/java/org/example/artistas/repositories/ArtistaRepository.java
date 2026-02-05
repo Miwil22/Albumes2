@@ -12,25 +12,17 @@ import java.util.Optional;
 
 @Repository
 public interface ArtistaRepository extends JpaRepository<Artista, Long>, JpaSpecificationExecutor<Artista> {
-    Optional<Artista> findByNombreEqualsIgnoreCase(String nombre);
 
-    // Equivalente a findByNombreEqualsIgnoreCaseAndIsDeletedFalse
-    Optional<Artista> findByNombreEqualsIgnoreCaseAndIsDeletedFalse(String nombre);
+    Optional<Artista> findByNombreEqualsIgnoreCase(String nombre);
 
     List<Artista> findByNombreContainingIgnoreCase(String nombre);
 
-    // Equivalente a findByNombreContainingIgnoreCaseAndIsDeletedFalse
-    List<Artista> findByNombreContainingIgnoreCaseAndIsDeletedFalse(String nombre);
-
-    // Equivalente a findByIsDeleted
     List<Artista> findByIsDeleted(Boolean isDeleted);
 
-    // Método Update igual que en Titulares
     @Modifying
     @Query("UPDATE Artista a SET a.isDeleted = true WHERE a.id = :id")
     void updateIsDeletedToTrueById(Long id);
 
-    // Chequeo de hijos (Albumes)
     @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Album a WHERE a.artista.id = :id")
     Boolean existsAlbumById(Long id);
 }

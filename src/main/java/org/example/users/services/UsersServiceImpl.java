@@ -1,16 +1,17 @@
 package org.example.users.services;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.example.albumes.repositories.AlbumRepository;
 import org.example.users.dto.UserInfoResponse;
 import org.example.users.dto.UserRequest;
 import org.example.users.dto.UserResponse;
+import org.example.users.exceptions.UserNameOrEmailExists;
 import org.example.users.exceptions.UserNotFound;
-import org.example.users.exceptions.UsersException;
 import org.example.users.mappers.UsersMapper;
 import org.example.users.models.User;
 import org.example.users.repositories.UserRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -18,13 +19,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -32,45 +30,39 @@ import java.util.UUID;
 @CacheConfig(cacheNames = {"users"})
 public class UsersServiceImpl implements UsersService {
 
-    private final UserRepository userRepository;
-    private final AlbumRepository albumRepository; // Adaptado: Usamos álbumes en vez de tarjetas
+    private final UserRepository usersRepository;
     private final UsersMapper usersMapper;
-    private final PasswordEncoder passwordEncoder;
-
+    private final AlbumRepository albumRepository;
     @Override
     public Page<UserResponse> findAll(Optional<String> username, Optional<String> email, Optional<Boolean> isDeleted, Pageable pageable) {
-        log.info("Buscando todos los usuarios con username: {}, email: {}, borrados: {}", username, email, isDeleted);
+        log.info("Buscando todos los usuarios con username: {} y borrados: {}", username, isDeleted);
+        Specification<User> specUsernameUser = (root, query, criteriaBuilder) ->
+                username.map(m -> criteriaBuilder.like(criteriaBuilder.lower(root.get("username")), "%" + m.toLowerCase() + "%"))
+                        .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
 
-        Specification<User> specUsername = (root, query, cb) ->
-                username.map(m -> cb.like(cb.lower(root.get("username")), "%" + m.toLowerCase() + "%"))
-                        .orElseGet(() -> cb.isTrue(cb.literal(true)));
+        Specification<User> specEmailUser = (root, query, criteriaBuilder) ->
+                email.map(m -> criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), "%" + m.toLowerCase() + "%"))
+                        .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
 
-        Specification<User> specEmail = (root, query, cb) ->
-                email.map(m -> cb.like(cb.lower(root.get("email")), "%" + m.toLowerCase() + "%"))
-                        .orElseGet(() -> cb.isTrue(cb.literal(true)));
+        Specification<User> specIsDeleted = (root, query, criteriaBuilder) ->
+                isDeleted.map(m -> criteriaBuilder.equal(root.get("isDeleted"), m))
+                        .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
 
-        Specification<User> specIsDeleted = (root, query, cb) ->
-                isDeleted.map(m -> cb.equal(root.get("isDeleted"), m))
-                        .orElseGet(() -> cb.isTrue(cb.literal(true)));
+        Specification<User> criterio = Specification.allOf(
+                specUsernameUser,
+                specEmailUser,
+                specIsDeleted
+        );
 
-        Specification<User> criterio = Specification.allOf(specUsername, specEmail, specIsDeleted);
-
-        return userRepository.findAll(criterio, pageable).map(usersMapper::toUserResponse);
+        return usersRepository.findAll(criterio, pageable).map(usersMapper::toUserResponse);
     }
 
     @Override
     @Cacheable(key = "#id")
-    public UserInfoResponse findById(String id) {
+    public UserInfoResponse findById(Long id) {
         log.info("Buscando usuario por id: {}", id);
-        UUID uuid = UUID.fromString(id);
-        User user = userRepository.findById(uuid).orElseThrow(() -> new UserNotFound(id));
-
-        // Adaptado: Buscamos sus álbumes en lugar de tarjetas
-        // Asumiendo que Album tiene un método getTitulo()
-        var albumes = albumRepository.findAllByUsuarioId(uuid).stream()
-                .map(a -> a.getNombre()) // O getTitulo(), comprueba tu modelo Album
-                .toList();
-
+        var user = usersRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
+        var albumes = albumRepository.findByUsuarioId(id).stream().map(p -> p.getTitulo()).toList();
         return usersMapper.toUserInfoResponse(user, albumes);
     }
 
@@ -78,57 +70,45 @@ public class UsersServiceImpl implements UsersService {
     @CachePut(key = "#result.id")
     public UserResponse save(UserRequest userRequest) {
         log.info("Guardando usuario: {}", userRequest);
-        userRepository.findByUsernameEqualsIgnoreCaseOrEmailEqualsIgnoreCase(userRequest.getUsername(), userRequest.getEmail())
+        usersRepository.findByUsernameEqualsIgnoreCaseOrEmailEqualsIgnoreCase(userRequest.getUsername(), userRequest.getEmail())
                 .ifPresent(u -> {
-                    throw new UsersException("Ya existe un usuario con ese username o email");
+                    throw new UserNameOrEmailExists("Ya existe un usuario con ese username o email");
                 });
-
-        User user = usersMapper.toUser(userRequest);
-        user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        return usersMapper.toUserResponse(userRepository.save(user));
+        return usersMapper.toUserResponse(usersRepository.save(usersMapper.toUser(userRequest)));
     }
 
     @Override
-    @CachePut(key = "#id")
-    public UserResponse update(String id, UserRequest userRequest) {
+    @CachePut(key = "#result.id")
+    public UserResponse update(Long id, UserRequest userRequest) {
         log.info("Actualizando usuario: {}", userRequest);
-        UUID uuid = UUID.fromString(id);
-        User userActual = userRepository.findById(uuid).orElseThrow(() -> new UserNotFound(id));
-
-        userRepository.findByUsernameEqualsIgnoreCaseOrEmailEqualsIgnoreCase(userRequest.getUsername(), userRequest.getEmail())
+        usersRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
+        usersRepository.findByUsernameEqualsIgnoreCaseOrEmailEqualsIgnoreCase(userRequest.getUsername(), userRequest.getEmail())
                 .ifPresent(u -> {
-                    if (!u.getId().equals(uuid)) {
-                        throw new UsersException("Ya existe un usuario con ese username o email");
+                    if (!u.getId().equals(id)) {
+                        System.out.println("usuario encontrado: " + u.getId() + " Mi id: " + id);
+                        throw new UserNameOrEmailExists("Ya existe un usuario con ese username o email");
                     }
                 });
-
-        // Actualizamos los campos
-        User userUpdated = usersMapper.toUser(userRequest, userActual);
-        // Si la password ha cambiado en el request, hay que codificarla, si no, mantener la antigua
-        if (userRequest.getPassword() != null && !userRequest.getPassword().isBlank()) {
-            userUpdated.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-        } else {
-            userUpdated.setPassword(userActual.getPassword());
-        }
-
-        return usersMapper.toUserResponse(userRepository.save(userUpdated));
+        return usersMapper.toUserResponse(usersRepository.save(usersMapper.toUser(userRequest, id)));
     }
 
     @Override
     @Transactional
     @CacheEvict(key = "#id")
-    public void deleteById(String id) {
+    public void deleteById(Long id) {
         log.info("Borrando usuario por id: {}", id);
-        UUID uuid = UUID.fromString(id);
-        User user = userRepository.findById(uuid).orElseThrow(() -> new UserNotFound(id));
-
-        // Adaptado: Si tiene álbumes, borrado lógico
-        if (albumRepository.existsByUsuarioId(uuid)) {
+        User user = usersRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
+        if (albumRepository.existsByUsuarioId(id)) {
             log.info("Borrado lógico de usuario por id: {}", id);
-            userRepository.updateIsDeletedToTrueById(uuid);
+            usersRepository.updateIsDeletedToTrueById(id);
         } else {
             log.info("Borrado físico de usuario por id: {}", id);
-            userRepository.delete(user);
+            usersRepository.delete(user);
         }
+    }
+
+    public List<User> findAllActiveUsers() {
+        log.info("Buscando todos los usuarios activos");
+        return usersRepository.findAllByIsDeletedFalse();
     }
 }

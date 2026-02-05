@@ -9,18 +9,15 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificationExecutor<User> {
-
-    Optional<User> findByUsername(String username);
+public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
 
     Optional<User> findByUsernameEqualsIgnoreCaseOrEmailEqualsIgnoreCase(String username, String email);
 
-    List<User> findAllByIsDeletedFalse();
-
     @Modifying
-    @Query("UPDATE User u SET u.isDeleted = true WHERE u.id = :id")
-    void updateIsDeletedToTrueById(UUID id);
+    @Query("UPDATE User p SET p.isDeleted = true WHERE p.id = :id")
+    void updateIsDeletedToTrueById(Long id);
+
+    List<User> findAllByIsDeletedFalse();
 }

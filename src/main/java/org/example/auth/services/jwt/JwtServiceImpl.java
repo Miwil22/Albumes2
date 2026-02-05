@@ -14,7 +14,6 @@ import java.util.UUID;
 
 @Service
 public class JwtServiceImpl implements JwtService {
-
     @Value("${jwt.secret}")
     private String jwtSecret;
 
@@ -22,28 +21,13 @@ public class JwtServiceImpl implements JwtService {
     private Long jwtExpiration;
 
     @Override
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
-    }
-
-    @Override
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return JWT.create()
-                .withHeader(Map.of("typ", "JWT", "alg", "HS256"))
-                .withSubject(userDetails.getUsername())
-                .withIssuedAt(new Date())
-                .withExpiresAt(new Date(System.currentTimeMillis() + (jwtExpiration * 1000)))
-                .withClaim("roles", userDetails.getAuthorities().stream()
-                        .map(grantedAuthority -> grantedAuthority.getAuthority())
-                        .toList())
-                .withJWTId(UUID.randomUUID().toString())
-                .withPayload(extraClaims)
-                .sign(Algorithm.HMAC256(jwtSecret));
-    }
-
-    @Override
     public String extractUserName(String token) {
         return extractAllClaims(token).getSubject();
+    }
+
+    @Override
+    public String generateToken(UserDetails userDetails) {
+        return generateToken(new HashMap<>(), userDetails);
     }
 
     @Override
@@ -64,5 +48,20 @@ public class JwtServiceImpl implements JwtService {
         return JWT.require(Algorithm.HMAC256(jwtSecret))
                 .build()
                 .verify(token);
+    }
+
+    @Override
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        return JWT.create()
+                .withHeader(Map.of("typ", "JWT", "alg", "HS256"))
+                .withSubject(userDetails.getUsername())
+                .withIssuedAt(new Date())
+                .withExpiresAt(new Date(System.currentTimeMillis() + (jwtExpiration * 1000)))
+                .withClaim("roles", userDetails.getAuthorities().stream()
+                        .map(grantedAuthority -> grantedAuthority.getAuthority())
+                        .toList())
+                .withJWTId(UUID.randomUUID().toString())
+                .withPayload(extraClaims)
+                .sign(Algorithm.HMAC256(jwtSecret));
     }
 }

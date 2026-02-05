@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import org.example.artistas.models.Artista;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -12,42 +13,40 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Builder
+@ToString
 @Getter
 @Setter
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
-@Table(name = "users")
-@ToString
+@Table(name = "USUARIOS")
 public class User implements UserDetails {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @NotBlank(message = "El nombre no puede estar vacío")
+    @NotBlank(message = "nombre no puede estar vacío")
     @Column(nullable = false)
     private String nombre;
 
-    @NotBlank(message = "Los apellidos no pueden estar vacíos")
     @Column(nullable = false)
+    @NotBlank(message = "apellidos no puede estar vacío")
     private String apellidos;
 
     @Column(unique = true, nullable = false)
-    @NotBlank(message = "El username no puede estar vacío")
+    @NotBlank(message = "Username no puede estar vacío")
     private String username;
 
     @Column(unique = true, nullable = false)
-    @Email(regexp = ".*@.*\\..*", message = "El email debe ser válido")
-    @NotBlank(message = "El email no puede estar vacío")
+    @Email(regexp = ".*@.*\\..*", message = "Email debe ser válido")
+    @NotBlank(message = "Email no puede estar vacío")
     private String email;
 
-    @NotBlank(message = "La contraseña no puede estar vacía")
-    @Length(min = 5, message = "La contraseña debe tener al menos 5 caracteres")
+    @NotBlank(message = "Password no puede estar vacío")
+    @Length(min = 5, message = "Password debe tener al menos 5 caracteres")
     @Column(nullable = false)
     private String password;
 
@@ -67,11 +66,20 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
+    @OneToOne
+    @JoinColumn(name = "artista_id")
+    private Artista artista;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public String getUsername() {
+        return username;
     }
 
     @Override

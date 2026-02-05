@@ -1,7 +1,6 @@
-package org.example.config.security;
+package org.example.config.auth;
 
 import lombok.RequiredArgsConstructor;
-import org.example.config.security.jwt.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +32,6 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @Configuration
 @EnableMethodSecurity(jsr250Enabled = true)
 public class SecurityConfig {
-
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -43,15 +41,16 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
+        String[] apiPaths = { "/api/**", "/error/**", "/ws/**" };
         http
-                .securityMatcher("/api/**", "/error/**", "/ws/**")
+                .securityMatcher(apiPaths)
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/error/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers("/api/" + apiVersion + "/auth/**").permitAll()
+                        .requestMatchers("/api/" + apiVersion + "/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -63,7 +62,8 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain openapiFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/swagger-ui/**", "/v3/api-docs/**")
+                .securityMatcher("/swagger-ui/**")
+                .securityMatcher("/v3/api-docs/**")
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll());
         return http.build();
@@ -80,7 +80,6 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
         return http.build();
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -105,7 +104,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.applyPermitDefaultValues();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200", "http://mifrontend.es"));
+        configuration.setAllowedOrigins(List.of("http://mifrontend.es", "http://localhost:4200"));
         configuration.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "PATCH"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
