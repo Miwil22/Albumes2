@@ -188,7 +188,7 @@ public class AlbumServiceImpl implements AlbumService, InitializingBean {
         onChange(Notificacion.Tipo.DELETE, albumDeleted);
     }
 
-    void onChange(Notificacion.Tipo tipo, Album data) {
+    public void onChange(Notificacion.Tipo tipo, Album data) {
         if (webSocketService == null) {
             webSocketService = this.webSocketConfig.webSocketAlbumesHandler();
         }
