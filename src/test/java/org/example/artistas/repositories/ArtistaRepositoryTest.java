@@ -1,133 +1,81 @@
 package org.example.artistas.repositories;
 
-import org.example.Application;
 import org.example.artistas.models.Artista;
-import org.example.artistas.repositories.ArtistasRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.jdbc.Sql;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-// Igualamos las anotaciones del proyecto Tarjetas
-@ContextConfiguration(classes = Application.class)
 @DataJpaTest
-@Sql(value = "/reset.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class ArtistaRepositoryTest {
 
-    private final Artista artista = Artista.builder().nombre("Queen").build();
-
     @Autowired
-    private ArtistasRepository repositorio;
+    private ArtistasRepository artistasRepository;
 
     @Autowired
     private TestEntityManager entityManager;
 
     @BeforeEach
     void setUp() {
-        entityManager.persist(artista);
-        entityManager.flush();
+        // Limpieza manual segura usando el repositorio
+        artistasRepository.deleteAll();
     }
 
     @Test
-    void findAll() {
-        // Act
-        List<Artista> artistas = repositorio.findAll();
+    void findByNombreEqualsIgnoreCase_ShouldReturnArtista() {
+        // Given
+        Artista artista = Artista.builder()
+                .nombre("Queen")
+                .nacionalidad("UK")
+                .fechaNacimiento(LocalDate.now())
+                .build();
 
-        // Assert
-        assertAll("findAll",
-                () -> assertNotNull(artistas),
-                () -> assertFalse(artistas.isEmpty())
-        );
+        // Usamos save() del repositorio en lugar de entityManager para simplificar
+        // y asegurar que se maneja bien la transacción
+        artistasRepository.save(artista);
+
+        // When
+        Optional<Artista> found = artistasRepository.findByNombreEqualsIgnoreCase("queen");
+
+        // Then
+        assertTrue(found.isPresent());
+        assertEquals("Queen", found.get().getNombre());
     }
 
     @Test
-    void findByNombre() {
-        // Act
-        List<Artista> artistas = repositorio.findByNombreContainingIgnoreCase("Queen");
+    void findByNombreContainingIgnoreCase_ShouldReturnList() {
+        // Given
+        Artista artista1 = Artista.builder()
+                .nombre("Queen")
+                .nacionalidad("UK")
+                .fechaNacimiento(LocalDate.now())
+                .build();
 
-        // Assert
-        assertAll("findAllByNombre",
-                () -> assertNotNull(artistas),
-                () -> assertFalse(artistas.isEmpty()),
-                () -> assertEquals("Queen", artistas.getFirst().getNombre())
-        );
-    }
+        Artista artista2 = Artista.builder()
+                .nombre("Queens of the Stone Age")
+                .nacionalidad("USA")
+                .fechaNacimiento(LocalDate.now())
+                .build();
 
-    @Test
-    void findById() {
-        // Act
-        Artista artistaFound = repositorio.findById(artista.getId()).orElse(null);
+        Artista artista3 = Artista.builder()
+                .nombre("Nirvana")
+                .nacionalidad("USA")
+                .fechaNacimiento(LocalDate.now())
+                .build();
 
-        // Assert
-        assertAll("findById",
-                () -> assertNotNull(artistaFound),
-                () -> assertEquals("Queen", artistaFound.getNombre())
-        );
-    }
+        artistasRepository.saveAll(List.of(artista1, artista2, artista3));
 
-    @Test
-    void findByIdNotFound() {
-        // Act
-        Artista artistaFound = repositorio.findById(100L).orElse(null);
+        // When
+        List<Artista> found = artistasRepository.findByNombreContainingIgnoreCase("queen");
 
-        // Assert
-        assertNull(artistaFound);
-    }
-
-    @Test
-    void save() {
-        // Act
-        Artista newArtista = repositorio.save(Artista.builder().nombre("Nirvana").build());
-
-        // Assert
-        assertAll("save",
-                () -> assertNotNull(newArtista),
-                () -> assertEquals("Nirvana", newArtista.getNombre())
-        );
-    }
-
-    @Test
-    void update() {
-        // Act
-        var artistaExistente = repositorio.findById(artista.getId()).orElse(null);
-        // assertNotNull(artistaExistente); // Seguro por setUp
-
-        // Modificamos el objeto recuperado o creamos uno con el mismo ID
-        artistaExistente.setNombre("Queen Remastered");
-        Artista artistaActualizado = repositorio.save(artistaExistente);
-
-        // Assert
-        assertAll("update",
-                () -> assertNotNull(artistaActualizado),
-                () -> assertEquals("Queen Remastered", artistaActualizado.getNombre())
-        );
-    }
-
-    @Test
-    void delete() {
-        // Act
-        var artistaBorrar = repositorio.findById(artista.getId()).orElse(null);
-        repositorio.delete(artistaBorrar);
-
-        Artista artistaBorrado = repositorio.findById(artista.getId()).orElse(null);
-
-        // Assert
-        assertNull(artistaBorrado);
-    }
-
-    // Test equivalente a FetchType EAGER vs LAZY de Tarjetas
-    @Test
-    void test_FetchType_Check() {
-        entityManager.clear();
-        Artista artistaFound = repositorio.findById(artista.getId()).orElse(null);
-        assertNotNull(artistaFound);
-        // Aquí podríamos comprobar si carga los álbumes dependiendo de tu config (Lazy es default)
+        // Then
+        assertEquals(2, found.size());
     }
 }

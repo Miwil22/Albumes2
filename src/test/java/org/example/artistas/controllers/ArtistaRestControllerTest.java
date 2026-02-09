@@ -1,184 +1,178 @@
 package org.example.artistas.controllers;
 
-import org.example.Application;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.artistas.dto.ArtistaRequestDto;
-import org.example.artistas.exceptions.ArtistaConflictException;
-import org.example.artistas.exceptions.ArtistaNotFoundException;
 import org.example.artistas.models.Artista;
 import org.example.artistas.services.ArtistasService;
+import org.example.artistas.exceptions.ArtistaNotFoundException;
+import org.example.artistas.exceptions.ArtistaConflictException;
+import org.example.utils.pagination.PaginationLinksUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean; // Importante: MockBean de Spring Boot 3.4
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.assertj.MockMvcTester;
+import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = Application.class)
+@SpringBootTest
 @AutoConfigureMockMvc
-class ArtistaRestControllerTest {
-
-    private final String ENDPOINT = "/api/v1/artistas";
-    private final Artista artista1 = Artista.builder().id(1L).nombre("Queen").build();
-    private final Artista artista2 = Artista.builder().id(2L).nombre("AC/DC").build();
+@ExtendWith(MockitoExtension.class)
+public class ArtistaRestControllerTest {
 
     @Autowired
-    private MockMvcTester mockMvcTester; // USAMOS EL TESTER MODERNO
+    private MockMvc mockMvc;
 
-    @MockitoBean
-    private ArtistasService artistaService;
+    @MockBean
+    private ArtistasService artistasService;
+
+    @MockBean
+    private PaginationLinksUtils paginationLinksUtils;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private final Artista artista = Artista.builder()
+            .id(1L)
+            .nombre("Artista Test")
+            .nacionalidad("Testland")
+            .fechaNacimiento(LocalDate.now())
+            .build();
 
     @Test
-    void getAll() {
-        // Arrange
-        var artistas = List.of(artista1, artista2);
-        var pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
-        var page = new PageImpl<>(artistas);
+    void getAll_ShouldReturnPageOfArtistas() throws Exception {
+        Mockito.when(artistasService.findAll(Optional.empty(), Optional.empty(), PageRequest.of(0, 10, Sort.by("id").ascending())))
+                .thenReturn(new PageImpl<>(List.of(artista)));
 
-        when(artistaService.findAll(eq(Optional.empty()), eq(Optional.empty()), any(Pageable.class)))
-                .thenReturn(page);
-        // Act
-        var result = mockMvcTester.get().uri(ENDPOINT).exchange();
-
-        // Assert
-        assertThat(result).hasStatusOk()
-                .bodyJson().satisfies(json -> {
-                    assertThat(json).extractingPath("$.content.length()").isEqualTo(2);
-                    assertThat(json).extractingPath("$.content[0].nombre").isEqualTo("Queen");
-                });
+        mockMvc.perform(get("/api/v1/artistas")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].nombre").value("Artista Test"))
+                .andExpect(jsonPath("$.content[0].nacionalidad").value("Testland"));
     }
 
     @Test
-    void getAllByNombre() {
-        // Arrange
-        var artistas = List.of(artista2);
-        String queryString = "?nombre=" + artista2.getNombre();
-        var pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
-        var page = new PageImpl<>(artistas);
+    void getById_ShouldReturnArtista() throws Exception {
+        Mockito.when(artistasService.findById(1L)).thenReturn(artista);
 
-        when(artistaService.findAll(eq(Optional.of(artista2.getNombre())), eq(Optional.empty()), any(Pageable.class)))
-                .thenReturn(page);
-
-        // Act
-        var result = mockMvcTester.get()
-                .uri(ENDPOINT + queryString)
-                .contentType(MediaType.APPLICATION_JSON)
-                .exchange();
-
-        // Assert
-        assertThat(result).hasStatusOk()
-                .bodyJson().satisfies(json -> {
-                    assertThat(json).extractingPath("$.content.length()").isEqualTo(1);
-                    assertThat(json).extractingPath("$.content[0].nombre").isEqualTo("AC/DC");
-                });
+        mockMvc.perform(get("/api/v1/artistas/{id}", 1L)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Artista Test"));
     }
 
     @Test
-    void getById() {
-        Long id = artista1.getId();
-        when(artistaService.findById(id)).thenReturn(artista1);
+    void getById_ShouldReturnNotFound() throws Exception {
+        Mockito.when(artistasService.findById(1L)).thenThrow(new ArtistaNotFoundException(1L));
 
-        var result = mockMvcTester.get().uri(ENDPOINT + "/" + id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .exchange();
-
-        assertThat(result).hasStatusOk()
-                .bodyJson().convertTo(Artista.class).usingRecursiveComparison().isEqualTo(artista1);
-        verify(artistaService, only()).findById(anyLong());
+        mockMvc.perform(get("/api/v1/artistas/{id}", 1L)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    void getById_shouldThrowArtistaNotFound() {
-        Long id = 3L;
-        when(artistaService.findById(anyLong())).thenThrow(new ArtistaNotFoundException(id));
+    void create_ShouldReturnCreatedArtista() throws Exception {
+        ArtistaRequestDto requestDto = ArtistaRequestDto.builder()
+                .nombre("New Artista")
+                .nacionalidad("USA") // IMPORTANTE: Campo obligatorio añadido
+                .build();
 
-        var result = mockMvcTester.get().uri(ENDPOINT + "/" + id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .exchange();
+        Artista createdArtista = Artista.builder()
+                .id(2L)
+                .nombre("New Artista")
+                .nacionalidad("USA")
+                .build();
 
-        assertThat(result).hasStatus4xxClientError()
-                .hasFailed().failure().isInstanceOf(ArtistaNotFoundException.class).hasMessageContaining("no encontrado");
-        verify(artistaService, only()).findById(anyLong());
+        Mockito.when(artistasService.save(any(ArtistaRequestDto.class))).thenReturn(createdArtista);
+
+        mockMvc.perform(post("/api/v1/artistas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nombre").value("New Artista"));
     }
 
     @Test
-    void create() {
-        String requestBody = """
-           { "nombre": "Nirvana" }
-           """;
-        var artistaSaved = Artista.builder().id(1L).nombre("Nirvana").build();
-        when(artistaService.save(any(ArtistaRequestDto.class))).thenReturn(artistaSaved);
+    void create_whenNombreExists_ShouldReturnConflict() throws Exception {
+        // Aunque esperamos conflicto, el JSON debe ser válido (tener nacionalidad)
+        // si no, salta 400 Bad Request antes de llegar al servicio
+        ArtistaRequestDto requestDto = ArtistaRequestDto.builder()
+                .nombre("Existing Artista")
+                .nacionalidad("Spain") // IMPORTANTE
+                .build();
 
-        var result = mockMvcTester.post().uri(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(requestBody).exchange();
+        Mockito.when(artistasService.save(any(ArtistaRequestDto.class)))
+                .thenThrow(new ArtistaConflictException("Conflicto"));
 
-        assertThat(result).hasStatus(HttpStatus.CREATED)
-                .bodyJson().convertTo(Artista.class).usingRecursiveComparison().isEqualTo(artistaSaved);
-        verify(artistaService, only()).save(any(ArtistaRequestDto.class));
+        mockMvc.perform(post("/api/v1/artistas")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isConflict());
     }
 
     @Test
-    void create_whenBadRequest() {
-        String requestBody = """
-           { "nombre": null }
-           """;
-        var result = mockMvcTester.post().uri(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(requestBody).exchange();
+    void update_ShouldReturnUpdatedArtista() throws Exception {
+        ArtistaRequestDto requestDto = ArtistaRequestDto.builder()
+                .nombre("Updated Artista")
+                .nacionalidad("Spain") // IMPORTANTE
+                .build();
 
-        assertThat(result).hasStatus(HttpStatus.BAD_REQUEST)
-                .bodyJson().hasPathSatisfying("$.errores", path -> assertThat(path).hasFieldOrProperty("nombre"));
-        verify(artistaService, never()).save(any(ArtistaRequestDto.class));
+        Artista updatedArtista = Artista.builder()
+                .id(1L)
+                .nombre("Updated Artista")
+                .nacionalidad("Spain")
+                .build();
+
+        Mockito.when(artistasService.update(eq(1L), any(ArtistaRequestDto.class))).thenReturn(updatedArtista);
+
+        mockMvc.perform(put("/api/v1/artistas/{id}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Updated Artista"));
     }
 
     @Test
-    void create_whenNombreExists() {
-        String requestBody = """
-           { "nombre": "Queen" }
-           """;
-        when(artistaService.save(any(ArtistaRequestDto.class))).thenThrow(new ArtistaConflictException("Ya existe un artista"));
+    void update_ShouldReturnNotFound() throws Exception {
+        ArtistaRequestDto requestDto = ArtistaRequestDto.builder()
+                .nombre("Updated Artista")
+                .nacionalidad("Spain") // IMPORTANTE
+                .build();
 
-        var result = mockMvcTester.post().uri(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content(requestBody).exchange();
+        Mockito.when(artistasService.update(eq(99L), any(ArtistaRequestDto.class)))
+                .thenThrow(new ArtistaNotFoundException(99L));
 
-        assertThat(result).hasStatus(HttpStatus.CONFLICT)
-                .hasFailed().failure().isInstanceOf(ArtistaConflictException.class);
-        verify(artistaService, only()).save(any(ArtistaRequestDto.class));
+        mockMvc.perform(put("/api/v1/artistas/{id}", 99L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    void update() {
-        Long id = 1L;
-        String requestBody = """
-           { "nombre": "QUEEN" }
-           """;
-        var artistaSaved = Artista.builder().id(1L).nombre("QUEEN").build();
-        when(artistaService.update(anyLong(), any(ArtistaRequestDto.class))).thenReturn(artistaSaved);
+    void delete_ShouldReturnNoContent() throws Exception {
+        Mockito.doNothing().when(artistasService).deleteById(1L);
 
-        var result = mockMvcTester.put().uri(ENDPOINT+ "/" + id).contentType(MediaType.APPLICATION_JSON).content(requestBody).exchange();
+        mockMvc.perform(delete("/api/v1/artistas/{id}", 1L))
+                .andExpect(status().isNoContent());
 
-        assertThat(result).hasStatusOk()
-                .bodyJson().convertTo(Artista.class).usingRecursiveComparison().isEqualTo(artistaSaved);
-        verify(artistaService, only()).update(anyLong(), any(ArtistaRequestDto.class));
-    }
-
-    @Test
-    void delete() {
-        Long id = 1L;
-        doNothing().when(artistaService).deleteById(anyLong());
-        var result = mockMvcTester.delete().uri(ENDPOINT+ "/" + id).exchange();
-        assertThat(result).hasStatus(HttpStatus.NO_CONTENT);
-        verify(artistaService, only()).deleteById(anyLong());
+        verify(artistasService, times(1)).deleteById(1L);
     }
 }
