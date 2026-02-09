@@ -19,7 +19,7 @@ import org.example.config.websockets.WebSocketConfig;
 import org.example.config.websockets.WebSocketHandler;
 import org.example.websockets.notifications.dto.AlbumNotificationResponse;
 import org.example.websockets.notifications.mappers.AlbumNotificationMapper;
-import org.example.websockets.notifications.models.Notificacion;
+import org.example.websockets.notifications.models.Notificacion; // Import correcto
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
