@@ -1,5 +1,5 @@
-
-DROP TABLE IF EXISTS user_roles;
-DROP TABLE IF EXISTS usuarios;
-DROP TABLE IF EXISTS albumes;
-DROP TABLE IF EXISTS artistas;
+-- Limpieza de tablas en orden inverso a las dependencias (Hijo -> Padre)
+DELETE FROM user_roles;
+DELETE FROM usuarios;
+DELETE FROM albumes;
+DELETE FROM artistas;
