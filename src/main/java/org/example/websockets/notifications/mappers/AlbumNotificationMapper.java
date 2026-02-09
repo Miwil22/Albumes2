@@ -6,16 +6,19 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AlbumNotificationMapper {
-    public AlbumNotificationResponse toAlbumNotificationDto(Album album) {
-        return AlbumNotificationResponse.builder()
-                .id(album.getId())
-                .titulo(album.getTitulo())
-                .artista(album.getArtista().getNombre())
-                .imagen(album.getPortada())
-                .precio(album.getPrecio())
-                .createdAt(album.getCreatedAt().toString())
-                .updatedAt(album.getUpdatedAt().toString())
-                .isDeleted(album.getIsDeleted())
-                .build();
+    public AlbumNotificationResponse toAlbumNotificationResponse(Album album) {
+        return new AlbumNotificationResponse(
+                album.getId(),
+                album.getTitulo(),
+                album.getGenero(),
+                album.getPrecio(),
+                album.getPortada(),
+                album.getArtista().getId(),
+                album.getUuid(),
+                album.getFechaLanzamiento().toString(),
+                album.getCreatedAt().toString(),
+                album.getUpdatedAt().toString(),
+                album.getIsDeleted()
+        );
     }
 }

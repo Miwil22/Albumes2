@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface AlbumService {
     Page<AlbumResponseDto> findAll(Optional<String> titulo, Optional<String> genero, Optional<Boolean> isDeleted, Pageable pageable);
@@ -15,15 +16,9 @@ public interface AlbumService {
 
     AlbumResponseDto findByUuid(String uuid);
 
-    Page<AlbumResponseDto> findByUsuarioId(Long usuarioId, Pageable pageable);
-    AlbumResponseDto findByUsuarioId(Long usuarioId, Long idAlbum);
-
     AlbumResponseDto save(AlbumCreateDto albumCreateDto);
-    AlbumResponseDto save(AlbumCreateDto albumCreateDto, Long usuarioId);
 
     AlbumResponseDto update(Long id, AlbumUpdateDto albumUpdateDto);
-    AlbumResponseDto update(Long id, AlbumUpdateDto albumUpdateDto, Long usuarioId);
 
     void deleteById(Long id);
-    void deleteById(Long id, Long usuarioId);
 }

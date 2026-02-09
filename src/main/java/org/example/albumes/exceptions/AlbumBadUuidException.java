@@ -6,6 +6,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class AlbumBadUuidException extends AlbumException {
     public AlbumBadUuidException(String uuid) {
-        super("UUID " + uuid + " no válido");
+        super("UUID " + uuid + " no es válido");
     }
 }

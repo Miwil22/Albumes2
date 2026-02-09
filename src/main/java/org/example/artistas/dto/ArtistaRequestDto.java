@@ -16,8 +16,11 @@ public class ArtistaRequestDto {
 
     @NotBlank(message = "La nacionalidad no puede estar vacía")
     private final String nacionalidad;
+
     private final LocalDate fechaNacimiento;
+
     private final String imagen;
+
     private final String biografia;
 
     private final Boolean isDeleted;

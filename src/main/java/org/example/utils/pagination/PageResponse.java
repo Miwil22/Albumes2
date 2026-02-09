@@ -1,7 +1,5 @@
 package org.example.utils.pagination;
 
-import org.springframework.data.domain.Page;
-
 import java.util.List;
 
 public record PageResponse<T>(
@@ -17,19 +15,4 @@ public record PageResponse<T>(
         String sortBy,
         String direction
 ) {
-    public static <T> PageResponse<T> of(Page<T> page, String sortBy, String direction) {
-        return new PageResponse<>(
-                page.getContent(),
-                page.getTotalPages(),
-                page.getTotalElements(),
-                page.getSize(),
-                page.getNumber(),
-                page.getNumberOfElements(),
-                page.isEmpty(),
-                page.isFirst(),
-                page.isLast(),
-                sortBy,
-                direction
-        );
-    }
 }

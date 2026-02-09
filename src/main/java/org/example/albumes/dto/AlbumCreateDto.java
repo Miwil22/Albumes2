@@ -1,34 +1,35 @@
 package org.example.albumes.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDate;
 
 @Builder
 @Data
-@Schema(description = "Álbum a crear")
 public class AlbumCreateDto {
     @NotBlank(message = "El título no puede estar vacío")
-    @Schema(description = "Título del álbum", example = "Motomami")
+    @Length(min = 3, message = "El título debe tener al menos 3 caracteres")
     private final String titulo;
 
     @NotBlank(message = "El género no puede estar vacío")
-    @Schema(description = "Género del álbum", example = "Pop")
     private final String genero;
 
     @NotNull(message = "La fecha de lanzamiento no puede ser nula")
-    @Schema(description = "Fecha de lanzamiento", example = "2022-03-18")
     private final LocalDate fechaLanzamiento;
 
-    @NotBlank(message = "El artista no puede estar vacío")
-    @Schema(description = "Nombre del artista", example = "Rosalía")
-    private final String nombreArtista;
-
     @NotNull(message = "El precio no puede ser nulo")
-    @Schema(description = "Precio del álbum", example = "19.99")
+    @DecimalMin(value = "0.0", message = "El precio no puede ser negativo")
     private final Double precio;
+
+    private final String portada;
+
+    private final String descripcion;
+
+    @NotNull(message = "El ID del artista no puede ser nulo")
+    private final Long artistaId;
 }

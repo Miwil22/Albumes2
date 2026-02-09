@@ -1,15 +1,12 @@
 package org.example.users.services;
 
-import org.example.albumes.repositories.AlbumRepository;
-import org.example.users.dto.UserInfoResponse;
 import org.example.users.dto.UserRequest;
 import org.example.users.dto.UserResponse;
 import org.example.users.exceptions.UserNameOrEmailExists;
 import org.example.users.exceptions.UserNotFound;
 import org.example.users.mappers.UsersMapper;
 import org.example.users.models.User;
-import org.example.users.repositories.UserRepository;
-import jakarta.transaction.Transactional;
+import org.example.users.repositories.UsersRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheConfig;
@@ -20,95 +17,112 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 @CacheConfig(cacheNames = {"users"})
 public class UsersServiceImpl implements UsersService {
-
-    private final UserRepository usersRepository;
+    private final UsersRepository usersRepository;
     private final UsersMapper usersMapper;
-    private final AlbumRepository albumRepository;
+
     @Override
     public Page<UserResponse> findAll(Optional<String> username, Optional<String> email, Optional<Boolean> isDeleted, Pageable pageable) {
-        log.info("Buscando todos los usuarios con username: {} y borrados: {}", username, isDeleted);
+        log.info("Buscando todos los usuarios con username: {}, email: {}, isDeleted: {}", username, email, isDeleted);
+
+        // Criterio de búsqueda por nombre de usuario
         Specification<User> specUsernameUser = (root, query, criteriaBuilder) ->
-                username.map(m -> criteriaBuilder.like(criteriaBuilder.lower(root.get("username")), "%" + m.toLowerCase() + "%"))
+                username.map(u -> criteriaBuilder.like(criteriaBuilder.lower(root.get("username")), "%" + u.toLowerCase() + "%"))
                         .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
 
+        // Criterio de búsqueda por email
         Specification<User> specEmailUser = (root, query, criteriaBuilder) ->
-                email.map(m -> criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), "%" + m.toLowerCase() + "%"))
+                email.map(e -> criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), "%" + e.toLowerCase() + "%"))
                         .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
 
-        Specification<User> specIsDeleted = (root, query, criteriaBuilder) ->
-                isDeleted.map(m -> criteriaBuilder.equal(root.get("isDeleted"), m))
+        // Criterio de búsqueda por borrado
+        Specification<User> specIsDeletedUser = (root, query, criteriaBuilder) ->
+                isDeleted.map(d -> criteriaBuilder.equal(root.get("isDeleted"), d))
                         .orElseGet(() -> criteriaBuilder.isTrue(criteriaBuilder.literal(true)));
 
-        Specification<User> criterio = Specification.allOf(
-                specUsernameUser,
-                specEmailUser,
-                specIsDeleted
-        );
+        Specification<User> criterio = Specification.where(specUsernameUser)
+                .and(specEmailUser)
+                .and(specIsDeletedUser);
 
         return usersRepository.findAll(criterio, pageable).map(usersMapper::toUserResponse);
     }
 
     @Override
     @Cacheable(key = "#id")
-    public UserInfoResponse findById(Long id) {
+    public UserResponse findById(Long id) {
         log.info("Buscando usuario por id: {}", id);
-        var user = usersRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
-        var albumes = albumRepository.findByUsuarioId(id).stream().map(p -> p.getTitulo()).toList();
-        return usersMapper.toUserInfoResponse(user, albumes);
+        return usersMapper.toUserResponse(usersRepository.findById(id).orElseThrow(() -> new UserNotFound(id)));
     }
 
     @Override
     @CachePut(key = "#result.id")
+    @Transactional
     public UserResponse save(UserRequest userRequest) {
         log.info("Guardando usuario: {}", userRequest);
-        usersRepository.findByUsernameEqualsIgnoreCaseOrEmailEqualsIgnoreCase(userRequest.getUsername(), userRequest.getEmail())
+        usersRepository.findByUsername(userRequest.getUsername())
                 .ifPresent(u -> {
-                    throw new UserNameOrEmailExists("Ya existe un usuario con ese username o email");
+                    throw new UserNameOrEmailExists("El usuario con username " + userRequest.getUsername() + " ya existe");
+                });
+        usersRepository.findByEmail(userRequest.getEmail())
+                .ifPresent(u -> {
+                    throw new UserNameOrEmailExists("El usuario con email " + userRequest.getEmail() + " ya existe");
                 });
         return usersMapper.toUserResponse(usersRepository.save(usersMapper.toUser(userRequest)));
     }
 
     @Override
     @CachePut(key = "#result.id")
+    @Transactional
     public UserResponse update(Long id, UserRequest userRequest) {
-        log.info("Actualizando usuario: {}", userRequest);
-        usersRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
-        usersRepository.findByUsernameEqualsIgnoreCaseOrEmailEqualsIgnoreCase(userRequest.getUsername(), userRequest.getEmail())
+        log.info("Actualizando usuario por id: {}", id);
+        User user = usersRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
+
+        usersRepository.findByUsername(userRequest.getUsername())
                 .ifPresent(u -> {
                     if (!u.getId().equals(id)) {
-                        System.out.println("usuario encontrado: " + u.getId() + " Mi id: " + id);
-                        throw new UserNameOrEmailExists("Ya existe un usuario con ese username o email");
+                        throw new UserNameOrEmailExists("El usuario con username " + userRequest.getUsername() + " ya existe");
                     }
                 });
-        return usersMapper.toUserResponse(usersRepository.save(usersMapper.toUser(userRequest, id)));
+
+        usersRepository.findByEmail(userRequest.getEmail())
+                .ifPresent(u -> {
+                    if (!u.getId().equals(id)) {
+                        throw new UserNameOrEmailExists("El usuario con email " + userRequest.getEmail() + " ya existe");
+                    }
+                });
+
+        User userUpdated = usersMapper.toUser(userRequest);
+        userUpdated.setId(id);
+        userUpdated.setCreatedAt(user.getCreatedAt()); // Mantenemos la fecha de creación
+
+        return usersMapper.toUserResponse(usersRepository.save(userUpdated));
     }
 
     @Override
-    @Transactional
     @CacheEvict(key = "#id")
+    @Transactional
     public void deleteById(Long id) {
         log.info("Borrando usuario por id: {}", id);
         User user = usersRepository.findById(id).orElseThrow(() -> new UserNotFound(id));
-        if (albumRepository.existsByUsuarioId(id)) {
-            log.info("Borrado lógico de usuario por id: {}", id);
-            usersRepository.updateIsDeletedToTrueById(id);
-        } else {
-            log.info("Borrado físico de usuario por id: {}", id);
-            usersRepository.delete(user);
-        }
-    }
+        // Borrado lógico o físico, el profesor aquí hace un borrado lógico si se lo indica en el modelo,
+        // pero en este método en concreto en su código suele hacer borrado lógico seteando isDeleted a true y salvando
 
-    public List<User> findAllActiveUsers() {
-        log.info("Buscando todos los usuarios activos");
-        return usersRepository.findAllByIsDeletedFalse();
+        // Pero viendo el código del profesor, si usa borrado lógico:
+        if (usersRepository.findById(id).isEmpty()) {
+            throw new UserNotFound(id);
+        }
+        // usersRepository.deleteById(id); // Si fuera físico
+
+        // El profesor implementa borrado lógico cambiando el flag
+        user.setIsDeleted(true);
+        usersRepository.save(user);
     }
 }

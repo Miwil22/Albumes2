@@ -6,5 +6,6 @@ import org.example.auth.dto.UserSignUpRequest;
 
 public interface AuthenticationService {
     JwtAuthResponse signUp(UserSignUpRequest request);
+
     JwtAuthResponse signIn(UserSignInRequest request);
 }

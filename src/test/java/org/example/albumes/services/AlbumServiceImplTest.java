@@ -7,7 +7,7 @@ import org.example.albumes.mappers.AlbumMapper;
 import org.example.albumes.models.Album;
 import org.example.albumes.repositories.AlbumRepository;
 import org.example.artistas.models.Artista;
-import org.example.artistas.services.ArtistaService;
+import org.example.artistas.services.ArtistasService;
 import org.example.config.websockets.WebSocketConfig;
 import org.example.config.websockets.WebSocketHandler;
 import org.example.websockets.notifications.mappers.AlbumNotificationMapper;
@@ -50,7 +50,7 @@ class AlbumServiceImplTest {
             .build();
 
     @Mock private AlbumRepository albumRepository;
-    @Mock private ArtistaService artistaService;
+    @Mock private ArtistasService artistaService;
     @Spy private AlbumMapper albumMapper;
     @Mock private WebSocketConfig webSocketConfig;
     @Mock private AlbumNotificationMapper albumNotificationMapper;

@@ -2,7 +2,7 @@ package org.example.artistas.repositories;
 
 import org.example.Application;
 import org.example.artistas.models.Artista;
-import org.example.artistas.repositories.ArtistaRepository;
+import org.example.artistas.repositories.ArtistasRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ class ArtistaRepositoryTest {
     private final Artista artista = Artista.builder().nombre("Queen").build();
 
     @Autowired
-    private ArtistaRepository repositorio;
+    private ArtistasRepository repositorio;
 
     @Autowired
     private TestEntityManager entityManager;

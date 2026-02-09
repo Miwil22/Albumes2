@@ -30,6 +30,9 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 @RequiredArgsConstructor
 @Configuration
+//@EnableWebSecurity // No hace falta en proyectos Spring Boot
+// Habilitamos la seguridad a nivel de método
+// ahora prePostEnabled está a true por defecto y @Secured se considera desfasado
 @EnableMethodSecurity(jsr250Enabled = true)
 public class SecurityConfig {
     private final UserDetailsService userDetailsService;
@@ -38,26 +41,54 @@ public class SecurityConfig {
     @Value("${api.version}")
     private String apiVersion;
 
+    // Este filtro permite el acceso a la API REST
     @Bean
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         String[] apiPaths = { "/api/**", "/error/**", "/ws/**" };
         http
                 .securityMatcher(apiPaths)
+                // Podemos decir que forzamos el uso de HTTPS, para algunas rutas de la API o todas
+                // Requerimos HTTPS para todas las peticiones, pero ojo que devuelve 302 para los test
+                // .requiresChannel(channel -> channel.anyRequest().requiresSecure())
+
+                // Deshabilitamos CSRF
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
+                // Activamos CORS
+                .cors(Customizer.withDefaults()) // CORS con opciones por defecto
+                // CORS opciones definidas en Bean: no hace falta especificar en SpringBoot
+                // porque detecta el Bean automáticamente
+                //.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // Sesiones
+                .sessionManagement(
+                        manager -> manager.sessionCreationPolicy(STATELESS))
+                // Lo primero es decir a qué URLs queremos dar acceso libre
+                // Lista blanca de comprobación
+
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/error/**").permitAll()
+                        // Websockets para notificaciones
                         .requestMatchers("/ws/**").permitAll()
+                        // Otras rutas de la API podemos permitirlas o no....
                         .requestMatchers("/api/" + apiVersion + "/**").permitAll()
+                        // Podríamos jugar con permisos, por ejemplo para una ruta concreta
+                        //.requestMatchers("/" + apiVersion + "/auth/me").hasRole("ADMIN")
+                        // O con un acción HTTP, POST, PUT, DELETE, etc.
+                        //.requestMatchers(GET, "/" + apiVersion + "/auth/me").hasRole("ADMIN")
+                        // O con un patrón de ruta
+                        //.regexMatchers("/" + apiVersion + "/auth/me").hasRole("ADMIN")
+                        // El resto de peticiones tienen que estar autenticadas
                         .anyRequest().authenticated())
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
+                // Añadimos el filtro de autenticación
+                .authenticationProvider(authenticationProvider()).addFilterBefore(
+                        jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        // Devolvemos la configuración
         return http.build();
     }
 
+    // Este filtro permite el acceso a la documentación OpenAPI
     @Bean
     @Order(2)
     public SecurityFilterChain openapiFilterChain(HttpSecurity http) throws Exception {
@@ -69,6 +100,7 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // Este filtro permite el acceso a la consola de H2. Quitar en producción
     @Bean
     @Order(3)
     public SecurityFilterChain h2ConsoleFilterChain(HttpSecurity http) throws Exception {
@@ -88,8 +120,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -104,10 +135,11 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.applyPermitDefaultValues();
-        configuration.setAllowedOrigins(List.of("http://mifrontend.es", "http://localhost:4200"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "PATCH"));
+        configuration.setAllowedOrigins(List.of("http://mifrontend.es"));
+        configuration.setAllowedMethods(List.of( "GET", "POST", "DELETE", "PUT", "PATCH"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**",configuration);
         return source;
     }
+
 }

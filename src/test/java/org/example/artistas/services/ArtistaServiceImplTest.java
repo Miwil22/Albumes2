@@ -3,10 +3,10 @@ package org.example.artistas.services;
 import org.example.artistas.dto.ArtistaRequestDto;
 import org.example.artistas.exceptions.ArtistaConflictException;
 import org.example.artistas.exceptions.ArtistaNotFoundException;
-import org.example.artistas.mappers.ArtistaMapper;
+import org.example.artistas.mappers.ArtistasMapper;
 import org.example.artistas.models.Artista;
-import org.example.artistas.repositories.ArtistaRepository;
-import org.example.artistas.services.ArtistaServiceImpl;
+import org.example.artistas.repositories.ArtistasRepository;
+import org.example.artistas.services.ArtistasServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,13 +33,13 @@ class ArtistaServiceImplTest {
     private final ArtistaRequestDto artistaDto = ArtistaRequestDto.builder().nombre("Queen").build();
 
     @Mock
-    private ArtistaRepository artistaRepository;
+    private ArtistasRepository artistaRepository;
 
     @Spy
-    private ArtistaMapper artistaMapper;
+    private ArtistasMapper artistaMapper;
 
     @InjectMocks
-    private ArtistaServiceImpl artistaService;
+    private ArtistasServiceImpl artistaService;
 
     @Test
     public void testFindAll() {

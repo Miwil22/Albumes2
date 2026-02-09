@@ -19,6 +19,7 @@ class SwaggerConfig {
     @Value("${api.version}")
     private String apiVersion;
 
+    // Añadimos la configuración de JWT
     private SecurityScheme createAPIKeyScheme() {
         return new SecurityScheme().type(SecurityScheme.Type.HTTP)
                 .bearerFormat("JWT")
@@ -30,39 +31,49 @@ class SwaggerConfig {
         return new OpenAPI()
                 .info(
                         new Info()
-                                .title("API REST Gestión de Albumes Spring Boot")
+                                .title("API REST Gestión de Álbumes Spring Boot DAW 2025/2026")
                                 .version("1.0.0")
-                                .description("API de ejemplo adaptada para Albumes")
-                                .termsOfService("https://example.org/license/")
+                                .description("API de ejemplo del curso Desarrollo de un API REST con Spring Boot para 2º DAW. 2025/2026")
+                                .termsOfService("https://carlosgs.dev/docs/license/")
                                 .license(
                                         new License()
                                                 .name("CC BY-NC-SA 4.0")
-                                                .url("https://example.org/license/")
+                                                .url("https://carlosgs.dev/docs/license/")
                                 )
                                 .contact(
                                         new Contact()
-                                                .name("Tu Nombre")
-                                                .email("tu@email.com")
+                                                .name("Miwil22") // He puesto tu usuario como contacto, puedes cambiarlo
+                                                .email("tu-email@ejemplo.com")
+                                                .url("https://github.com/Miwil22")
                                 )
 
                 )
                 .externalDocs(
                         new ExternalDocumentation()
                                 .description("Documentación del Proyecto")
-                                .url("https://github.com/tu-usuario/Albumes2")
+                                .url("https://github.com/Miwil22/Albumes2")
                 )
+                .externalDocs(
+                        new ExternalDocumentation()
+                                .description("GitHub del Proyecto")
+                                .url("https://github.com/Miwil22/Albumes2")
+                )
+                // Añadimos la seguridad JWT
                 .addSecurityItem(new SecurityRequirement().
                         addList("Bearer Authentication"))
                 .components(new Components().addSecuritySchemes
                         ("Bearer Authentication", createAPIKeyScheme()));
     }
 
+
     @Bean
     GroupedOpenApi httpApi() {
         return GroupedOpenApi.builder()
                 .group("http")
-                .pathsToMatch("/api/" + apiVersion + "/albumes/**", "/api/" + apiVersion + "/artistas/**")
-                .displayName("API Gestión de Albumes")
+                // Algunas rutas son JWT
+                // .pathsToMatch("/v1/**") // Todas las rutas
+                .pathsToMatch("/api/" + apiVersion + "/albumes/**") //Solo albumes
+                .displayName("API Gestión de Álbumes Spring Boot DAW 2025/2026")
                 .build();
     }
 }

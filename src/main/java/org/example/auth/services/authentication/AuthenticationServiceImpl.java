@@ -1,7 +1,5 @@
 package org.example.auth.services.authentication;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.example.auth.dto.JwtAuthResponse;
 import org.example.auth.dto.UserSignInRequest;
 import org.example.auth.dto.UserSignUpRequest;
@@ -12,23 +10,32 @@ import org.example.auth.repositories.AuthUsersRepository;
 import org.example.auth.services.jwt.JwtService;
 import org.example.users.models.Role;
 import org.example.users.models.User;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-@Service
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
+@Service
 public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthUsersRepository authUsersRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
+    /**
+     * Registra un usuario
+     *
+     * @param request datos del usuario
+     * @return Token de autenticación
+     */
     @Override
     public JwtAuthResponse signUp(UserSignUpRequest request) {
         log.info("Creando usuario: {}", request);
@@ -39,9 +46,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .email(request.getEmail())
                     .nombre(request.getNombre())
                     .apellidos(request.getApellidos())
-                    .roles(Set.of(Role.USER))
+                    .roles(Stream.of(Role.USER).collect(Collectors.toSet()))
                     .build();
             try {
+                // Salvamos y devolvemos el token
                 var userStored = authUsersRepository.save(user);
                 return JwtAuthResponse.builder().token(jwtService.generateToken(userStored)).build();
             } catch (DataIntegrityViolationException ex) {
@@ -49,12 +57,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         } else {
             throw new AuthDifferentPasswords("Las contraseñas no coinciden");
+
         }
     }
 
+    /**
+     * Autentica un usuario
+     *
+     * @param request datos del usuario
+     * @return Token de autenticación
+     */
     @Override
     public JwtAuthResponse signIn(UserSignInRequest request) {
         log.info("Autenticando usuario: {}", request);
+        // Autenticamos y devolvemos el token
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
         var user = authUsersRepository.findByUsername(request.getUsername())

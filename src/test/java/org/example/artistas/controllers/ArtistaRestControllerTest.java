@@ -5,7 +5,7 @@ import org.example.artistas.dto.ArtistaRequestDto;
 import org.example.artistas.exceptions.ArtistaConflictException;
 import org.example.artistas.exceptions.ArtistaNotFoundException;
 import org.example.artistas.models.Artista;
-import org.example.artistas.services.ArtistaService;
+import org.example.artistas.services.ArtistasService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -41,7 +41,7 @@ class ArtistaRestControllerTest {
     private MockMvcTester mockMvcTester; // USAMOS EL TESTER MODERNO
 
     @MockitoBean
-    private ArtistaService artistaService;
+    private ArtistasService artistaService;
 
     @Test
     void getAll() {

@@ -1,24 +1,30 @@
 package org.example.albumes.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMin;
 import lombok.Builder;
 import lombok.Data;
+import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDate;
 
 @Builder
 @Data
-@Schema(description = "Álbum a actualizar")
 public class AlbumUpdateDto {
-    @Schema(description = "Título del álbum", example = "Motomami")
+    @Length(min = 3, message = "El título debe tener al menos 3 caracteres")
     private final String titulo;
 
-    @Schema(description = "Género del álbum", example = "Pop")
     private final String genero;
 
-    @Schema(description = "Fecha de lanzamiento", example = "2022-03-18")
     private final LocalDate fechaLanzamiento;
 
-    @Schema(description = "Precio del álbum", example = "19.99")
+    @DecimalMin(value = "0.0", message = "El precio no puede ser negativo")
     private final Double precio;
+
+    private final String portada;
+
+    private final String descripcion;
+
+    private final Long artistaId;
+
+    private final Boolean isDeleted;
 }

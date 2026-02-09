@@ -1,13 +1,12 @@
 package org.example.users.dto;
 
+import org.example.users.models.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.users.models.Role;
 import org.hibernate.validator.constraints.Length;
 
 import java.util.Set;
@@ -32,7 +31,6 @@ public class UserRequest {
 
     @NotBlank(message = "Password no puede estar vacío")
     @Length(min = 5, message = "Password debe tener al menos 5 caracteres")
-    @Size(min = 5, message = "Password debe tener al menos 5 caracteres")
     private String password;
 
     @Builder.Default

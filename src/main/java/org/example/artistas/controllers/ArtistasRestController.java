@@ -2,7 +2,7 @@ package org.example.artistas.controllers;
 
 import org.example.artistas.dto.ArtistaRequestDto;
 import org.example.artistas.models.Artista;
-import org.example.artistas.services.ArtistaService;
+import org.example.artistas.services.ArtistasService;
 import org.example.utils.pagination.PageResponse;
 import org.example.utils.pagination.PaginationLinksUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,10 +28,10 @@ import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
-@RestController
-@RequestMapping("api/${api.version}/artistas")
-public class ArtistaRestController {
-    private final ArtistaService artistaService;
+@RestController // Es un controlador Rest
+@RequestMapping("api/${api.version}/artistas") // Es la ruta del controlador
+public class ArtistasRestController {
+    private final ArtistasService artistasService;
     private final PaginationLinksUtils paginationLinksUtils;
 
     @GetMapping()
@@ -45,41 +45,62 @@ public class ArtistaRestController {
             HttpServletRequest request
     ) {
         log.info("Buscando todos los artistas con nombre={} isDeleted={}", nombre, isDeleted);
+        // Creamos el objeto de ordenación
         Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        // Creamos cómo va a ser la paginación
         Pageable pageable = PageRequest.of(page, size, sort);
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(request.getRequestURL().toString());
-        Page<Artista> pageResult = artistaService.findAll(nombre, isDeleted, pageable);
+        Page<Artista> pageResult = artistasService.findAll(nombre, isDeleted, pageable);
         return ResponseEntity.ok()
                 .header("link", paginationLinksUtils.createLinkHeader(pageResult, uriBuilder))
-                .body(PageResponse.of(pageResult, sortBy, direction));
+                .body(new PageResponse<>(
+                        pageResult.getContent(),
+                        pageResult.getTotalPages(),
+                        pageResult.getTotalElements(),
+                        pageResult.getSize(),
+                        pageResult.getNumber(),
+                        pageResult.getNumberOfElements(),
+                        pageResult.isEmpty(),
+                        pageResult.isFirst(),
+                        pageResult.isLast(),
+                        sortBy,
+                        direction
+                ));
+
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Artista> getById(@PathVariable Long id) {
         log.info("Buscando artista por id={}", id);
-        return ResponseEntity.ok(artistaService.findById(id));
+        return ResponseEntity.ok(artistasService.findById(id));
     }
 
     @PostMapping()
     public ResponseEntity<Artista> create(@Valid @RequestBody ArtistaRequestDto artistaRequestDto) {
         log.info("Creando artista : {}", artistaRequestDto);
-        var saved = artistaService.save(artistaRequestDto);
+        var saved = artistasService.save(artistaRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Artista> update(@PathVariable Long id, @Valid @RequestBody ArtistaRequestDto artistaRequestDto) {
         log.info("Actualizando artista id={} con artista={}", id, artistaRequestDto);
-        return ResponseEntity.ok(artistaService.update(id, artistaRequestDto));
+        return ResponseEntity.ok(artistasService.update(id, artistaRequestDto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         log.info("Borrando artista por id: {}", id);
-        artistaService.deleteById(id);
+        artistasService.deleteById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    /**
+     * Manejador de excepciones de Validación: 400 Bad Request
+     *
+     * @param ex excepción
+     * @return Mapa de errores de validación con el campo y el mensaje
+     */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationExceptions(

@@ -11,6 +11,6 @@ public class AlbumNotFoundException extends AlbumException {
         super("Álbum con id " + id + " no encontrado");
     }
     public AlbumNotFoundException(UUID uuid) {
-        super("Álbum con uuid " + uuid + " no encontrado");
+        super("Álbum con UUID " + uuid + " no encontrado");
     }
 }

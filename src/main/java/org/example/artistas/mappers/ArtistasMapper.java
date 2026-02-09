@@ -4,10 +4,8 @@ import org.example.artistas.dto.ArtistaRequestDto;
 import org.example.artistas.models.Artista;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Component
-public class ArtistaMapper {
+public class ArtistasMapper {
     public Artista toArtista(ArtistaRequestDto dto) {
         return Artista.builder()
                 .id(null)
@@ -16,9 +14,6 @@ public class ArtistaMapper {
                 .fechaNacimiento(dto.getFechaNacimiento())
                 .imagen(dto.getImagen())
                 .biografia(dto.getBiografia())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .isDeleted(false)
                 .build();
     }
 
@@ -31,8 +26,8 @@ public class ArtistaMapper {
                 .imagen(dto.getImagen() != null ? dto.getImagen() : artista.getImagen())
                 .biografia(dto.getBiografia() != null ? dto.getBiografia() : artista.getBiografia())
                 .createdAt(artista.getCreatedAt())
-                .updatedAt(LocalDateTime.now())
-                .isDeleted(dto.getIsDeleted() != null ? dto.getIsDeleted() : artista.getIsDeleted())
+                //.updatedAt(LocalDateTime.now())
+                .isDeleted(dto.getIsDeleted()  != null ? dto.getIsDeleted() : artista.getIsDeleted())
                 .build();
     }
 }

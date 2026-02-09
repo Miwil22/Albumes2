@@ -41,7 +41,6 @@ public class PaginationLinksUtils {
         return uriBuilder.replaceQueryParam("page", newPageNumber)
                 .replaceQueryParam("size", size)
                 .build()
-                .encode()
                 .toUriString();
     }
 
@@ -50,7 +49,7 @@ public class PaginationLinksUtils {
     }
 
     private void appendCommaIfNecessary(final StringBuilder linkHeader) {
-        if (linkHeader.length() > 0) {
+        if (!linkHeader.isEmpty()) {
             linkHeader.append(", ");
         }
     }

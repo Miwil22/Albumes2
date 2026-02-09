@@ -1,10 +1,10 @@
 package org.example.users.models;
 
+import org.example.artistas.models.Artista;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import org.example.artistas.models.Artista;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 
 @Builder
 @ToString
@@ -79,6 +80,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
+        // email in our case
         return username;
     }
 

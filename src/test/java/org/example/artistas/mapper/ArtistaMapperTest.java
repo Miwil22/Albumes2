@@ -1,7 +1,7 @@
 package org.example.artistas.mapper;
 
 import org.example.artistas.dto.ArtistaRequestDto;
-import org.example.artistas.mappers.ArtistaMapper;
+import org.example.artistas.mappers.ArtistasMapper;
 import org.example.artistas.models.Artista;
 import org.junit.jupiter.api.Test;
 
@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ArtistaMapperTest {
     private final Artista artista = Artista.builder().id(1L).nombre("Queen").build();
-    private final ArtistaMapper artistaMapper = new ArtistaMapper();
+    private final ArtistasMapper artistaMapper = new ArtistasMapper();
     private final ArtistaRequestDto artistaDto = ArtistaRequestDto.builder().nombre("QUEEN").build();
 
     @Test
