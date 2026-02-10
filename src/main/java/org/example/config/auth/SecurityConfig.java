@@ -41,7 +41,9 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
-        String[] apiPaths = { "/api/**", "/error/**", "/ws/**" };
+        // 1. AÑADIMOS GRAPHQL Y GRAPHIQL AQUÍ
+        String[] apiPaths = { "/api/**", "/error/**", "/ws/**", "/graphql", "/graphiql", "/graphiql/**" };
+
         http
                 .securityMatcher(apiPaths)
                 .csrf(AbstractHttpConfigurer::disable)
@@ -50,6 +52,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/error/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
+                        // 2. AÑADIMOS PERMISOS AQUÍ TAMBIÉN
+                        .requestMatchers("/graphiql", "/graphiql/**", "/graphql").permitAll()
                         .requestMatchers("/api/" + apiVersion + "/**").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
@@ -89,7 +93,6 @@ public class SecurityConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        // ESTA ES LA LÍNEA CORREGIDA:
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
@@ -105,7 +108,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.applyPermitDefaultValues();
-        configuration.setAllowedOrigins(List.of("http://mifrontend.es", "http://localhost:4200"));
+        configuration.setAllowedOrigins(List.of("http://mifrontend.es", "http://localhost:4200", "http://localhost:3000")); // Añadido localhost:3000 por si acaso
         configuration.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "PATCH"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

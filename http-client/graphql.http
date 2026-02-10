@@ -1,0 +1,15 @@
+### Obtener todos los albumes con sus artistas (GraphQL)
+POST http://localhost:3000/graphql
+Content-Type: application/json
+
+{
+  "query": "query { albumes { id titulo precio genero artista { nombre nacionalidad } } }"
+}
+
+### Buscar un artista por nombre (GraphQL)
+POST http://localhost:3000/graphql
+Content-Type: application/json
+
+{
+  "query": "query { artistasByNombre(nombre: \"Estopa\") { id nombre albumes { titulo } } }"
+}
