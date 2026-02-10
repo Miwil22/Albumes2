@@ -1,0 +1,48 @@
+# ==========================================================================
+# ESQUEMA GRAPHQL PARA ALBUM Y ARTISTA
+# ==========================================================================
+# Adaptación del esquema de Tarjetas/Titulares a Albumes/Artistas
+# ==========================================================================
+
+# --- CONSULTAS DISPONIBLES (Queries) ---
+type Query {
+    # Devuelve la lista completa de todos los álbumes
+    albumes: [Album!]!
+
+    # Busca y devuelve un álbum específico por su ID
+    albumById(id: ID!): Album
+
+    # Devuelve la lista completa de todos los artistas
+    artistas: [Artista!]!
+
+    # Busca y devuelve un artista específico por su ID
+    artistaById(id: ID!): Artista
+
+    # Busca artistas que contengan el nombre dado (Búsqueda parcial)
+    artistasByNombre(nombre: String!): [Artista!]!
+}
+
+# --- TIPO ALBUM (Equivalente a Tarjeta) ---
+type Album {
+    id: ID!             # Identificador único
+    titulo: String!     # Título del álbum (equivale a numero de tarjeta)
+    genero: String!     # Género musical
+    precio: Float!      # Precio (equivale a saldo)
+    fechaLanzamiento: String! # Fecha (equivale a fechaCaducidad)
+    uuid: String!       # Identificador UUID
+    createdAt: String!  # Fecha de creación
+    updatedAt: String!  # Fecha de modificación
+    isDeleted: Boolean! # Borrado lógico
+    artista: Artista!   # Relación: Un álbum pertenece a un artista
+}
+
+# --- TIPO ARTISTA (Equivalente a Titular) ---
+type Artista {
+    id: ID!             # Identificador único
+    nombre: String!     # Nombre del artista
+    nacionalidad: String! # Nacionalidad (campo extra propio de Artista)
+    createdAt: String!  # Fecha de creación
+    updatedAt: String!  # Fecha de modificación
+    isDeleted: Boolean! # Borrado lógico
+    albumes: [Album!]!  # Relación: Un artista tiene una lista de álbumes
+}
