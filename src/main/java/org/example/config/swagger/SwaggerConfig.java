@@ -70,9 +70,7 @@ class SwaggerConfig {
     GroupedOpenApi httpApi() {
         return GroupedOpenApi.builder()
                 .group("http")
-                // Algunas rutas son JWT
-                // .pathsToMatch("/v1/**") // Todas las rutas
-                .pathsToMatch("/api/" + apiVersion + "/albumes/**") //Solo albumes
+                .pathsToMatch("/api/" + apiVersion + "/**")
                 .displayName("API Gestión de Álbumes Spring Boot DAW 2025/2026")
                 .build();
     }
