@@ -1,7 +1,8 @@
 package org.example.artistas.mappers;
 
-import org.example.artistas.dto.ArtistaRequestDto;
-import org.example.artistas.models.Artista;
+import org.example.rest.artistas.dto.ArtistaRequestDto;
+import org.example.rest.artistas.mappers.ArtistasMapper;
+import org.example.rest.artistas.models.Artista;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

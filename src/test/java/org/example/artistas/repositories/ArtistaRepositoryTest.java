@@ -1,6 +1,7 @@
 package org.example.artistas.repositories;
 
-import org.example.artistas.models.Artista;
+import org.example.rest.artistas.models.Artista;
+import org.example.rest.artistas.repositories.ArtistasRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

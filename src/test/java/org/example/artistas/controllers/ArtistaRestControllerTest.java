@@ -1,11 +1,11 @@
 package org.example.artistas.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.artistas.dto.ArtistaRequestDto;
-import org.example.artistas.models.Artista;
-import org.example.artistas.services.ArtistasService;
-import org.example.artistas.exceptions.ArtistaNotFoundException;
-import org.example.artistas.exceptions.ArtistaConflictException;
+import org.example.rest.artistas.dto.ArtistaRequestDto;
+import org.example.rest.artistas.models.Artista;
+import org.example.rest.artistas.services.ArtistasService;
+import org.example.rest.artistas.exceptions.ArtistaNotFoundException;
+import org.example.rest.artistas.exceptions.ArtistaConflictException;
 import org.example.utils.pagination.PaginationLinksUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

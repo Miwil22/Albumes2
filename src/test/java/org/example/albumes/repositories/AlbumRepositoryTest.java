@@ -1,8 +1,9 @@
 package org.example.albumes.repositories;
 
-import org.example.albumes.models.Album;
-import org.example.artistas.models.Artista;
-import org.example.artistas.repositories.ArtistasRepository;
+import org.example.rest.albumes.models.Album;
+import org.example.rest.albumes.repositories.AlbumRepository;
+import org.example.rest.artistas.models.Artista;
+import org.example.rest.artistas.repositories.ArtistasRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;

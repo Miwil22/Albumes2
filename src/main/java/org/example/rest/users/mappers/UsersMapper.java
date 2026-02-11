@@ -1,0 +1,42 @@
+package org.example.rest.users.mappers;
+
+import org.example.rest.users.dto.UserInfoResponse;
+import org.example.rest.users.dto.UserRequest;
+import org.example.rest.users.dto.UserResponse;
+import org.example.rest.users.models.User;
+import org.springframework.stereotype.Component;
+
+@Component
+public class UsersMapper {
+    public User toUser(UserRequest request) {
+        return User.builder()
+                .nombre(request.getNombre())
+                .apellidos(request.getApellidos())
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .password(request.getPassword())
+                .roles(request.getRoles())
+                .isDeleted(request.getIsDeleted())
+                .build();
+    }
+
+    public UserResponse toUserResponse(User user) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .nombre(user.getNombre())
+                .apellidos(user.getApellidos())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .roles(user.getRoles())
+                .isDeleted(user.getIsDeleted())
+                .build();
+    }
+
+    public UserInfoResponse toUserInfoResponse(User user) {
+        return UserInfoResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .roles(user.getRoles())
+                .build();
+    }
+}

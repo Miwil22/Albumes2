@@ -1,14 +1,14 @@
 package org.example.albumes.services;
 
-import org.example.albumes.dto.AlbumCreateDto;
-import org.example.albumes.dto.AlbumResponseDto;
-import org.example.albumes.mappers.AlbumMapper;
-import org.example.albumes.models.Album;
-import org.example.albumes.repositories.AlbumRepository;
-import org.example.artistas.models.Artista;
-import org.example.artistas.repositories.ArtistasRepository;
+import org.example.rest.albumes.dto.AlbumCreateDto;
+import org.example.rest.albumes.dto.AlbumResponseDto;
+import org.example.rest.albumes.mappers.AlbumMapper;
+import org.example.rest.albumes.models.Album;
+import org.example.rest.albumes.repositories.AlbumRepository;
+import org.example.rest.albumes.services.AlbumServiceImpl;
+import org.example.rest.artistas.models.Artista;
+import org.example.rest.artistas.repositories.ArtistasRepository;
 import org.example.config.websockets.WebSocketConfig;
-import org.example.config.websockets.WebSocketHandler;
 import org.example.websockets.notifications.mappers.AlbumNotificationMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,0 +1,144 @@
+# ==========================================================================
+# ESQUEMA GRAPHQL PARA ALBUM Y ARTISTA
+# ==========================================================================
+# Este esquema permite consultar álbumes con su artista y artistas
+# con sus álbumes. Es un ejemplo educativo de cómo estructurar GraphQL.
+#
+# QUE ES UN ESQUEMA GRAPHQL:
+# Un esquema GraphQL define formalmente los tipos de datos, consultas y
+# mutaciones que una API puede manejar. Es el contrato entre cliente y servidor.
+#
+# COMPONENTES CLAVE:
+# 1. Tipos (Types): Define objetos, listas, escalares (String, Int, Float, Boolean, ID)
+# 2. Consultas (Queries): Operaciones de lectura para obtener datos
+# 3. Mutaciones (Mutations): Operaciones de escritura para modificar datos
+# 4. Suscripciones (Subscriptions): Actualizaciones en tiempo real
+# 5. Relaciones: Cómo se conectan los diferentes tipos entre sí
+#
+# NOTACIÓN BÁSICA:
+# - Los tipos se definen con 'type NombreTipo { campos }'
+# - Los campos se definen como 'nombre: Tipo'
+# - Tipos escalares: String, Int, Float, Boolean, ID
+# - Campo obligatorio: 'nombre: String!' (no puede ser nulo)
+# - Campo opcional: 'nombre: String' (puede ser nulo)
+# - Lista: '[String!]!' = lista no nula de strings no nulos
+# - Lista opcional: '[String]' = lista que puede ser nula con elementos que pueden ser nulos
+# - Comentarios de línea: # (como este)
+# - Las queries van en el tipo 'Query', las mutations en 'Mutation'
+#
+# EJEMPLO DE NOTACIÓN:
+# albumes: [Album!]! significa:
+# - El campo se llama 'albumes'
+# - Es una lista (corchetes [])
+# - Contiene elementos del tipo 'Album'
+# - Cada elemento es obligatorio (Album!)
+# - La lista en sí es obligatoria (! al final)
+# ==========================================================================
+
+# --- CONSULTAS DISPONIBLES ---
+# Aquí se definen todas las operaciones de lectura que pueden hacer los clientes
+type Query {
+    # Devuelve la lista completa de todos los álbumes disponibles
+    albumes: [Album!]!
+
+    # Busca y devuelve un álbum específico por su identificador único
+    # Parámetro: id (obligatorio) - El ID del álbum a buscar
+    # Retorna: Album o null si no existe
+    albumById(id: ID!): Album
+
+    # Devuelve la lista completa de todos los artistas disponibles
+    artistas: [Artista!]!
+
+    # Busca y devuelve un artista específico por su identificador único
+    # Parámetro: id (obligatorio) - El ID del artista a buscar
+    # Retorna: Artista o null si no existe
+    artistaById(id: ID!): Artista
+
+    # Busca y devuelve una lista de artistas que coincidan con el nombre dado
+    # Parámetro: nombre (obligatorio) - El nombre del artista a buscar (parcial)
+    # Retorna: Lista de artistas que coincidan con el nombre
+    artistasByNombre(nombre: String!): [Artista!]!
+}
+
+# --- TIPO ALBUM ---
+# Representa un álbum musical con todos sus atributos y relaciones
+type Album {
+    id: ID!                   # Identificador único numérico autoincremental (Long en Java)
+    titulo: String!           # Título del álbum
+    genero: String!           # Género musical (Rock, Pop, Indie...)
+    precio: Float!            # Precio de venta
+    fechaLanzamiento: String! # Fecha de lanzamiento (formato ISO 8601 o YYYY-MM-DD)
+    uuid: String!             # Identificador UUID único del álbum (para APIs externas)
+    createdAt: String!        # Fecha y hora de creación (formato ISO 8601)
+    updatedAt: String!        # Fecha y hora de última modificación (formato ISO 8601)
+    isDeleted: Boolean!       # Indica si el álbum está marcado como eliminado (borrado lógico)
+    artista: Artista!         # Artista al que pertenece este álbum (relación ManyToOne)
+}
+
+# --- TIPO ARTISTA ---
+# Representa un artista musical con sus atributos y álbumes asociados
+type Artista {
+    id: ID!                   # Identificador único del artista
+    nombre: String!           # Nombre del artista o grupo
+    nacionalidad: String!     # Nacionalidad del artista
+    createdAt: String!        # Fecha y hora de creación (formato ISO 8601)
+    updatedAt: String!        # Fecha y hora de última modificación (formato ISO 8601)
+    isDeleted: Boolean!       # Indica si el artista está marcado como eliminado (borrado lógico)
+    albumes: [Album!]!        # Lista de todos los álbumes de este artista (relación OneToMany)
+}
+
+# ==========================================================================
+# EJEMPLOS DE CONSULTAS PARA PROBAR EN GRAPHIQL:
+# ==========================================================================
+#
+# 1. OBTENER TODOS LOS ÁLBUMES CON SU ARTISTA:
+# query {
+#   albumes {
+#     id
+#     titulo
+#     precio
+#     genero
+#     artista {
+#       id
+#       nombre
+#       nacionalidad
+#     }
+#   }
+# }
+#
+# 2. OBTENER UN ÁLBUM ESPECÍFICO POR ID:
+# query {
+#   albumById(id: "1") {
+#     titulo
+#     precio
+#     fechaLanzamiento
+#     artista {
+#       nombre
+#     }
+#   }
+# }
+#
+# 3. OBTENER UN ARTISTA CON TODOS SUS ÁLBUMES:
+# query {
+#   artistaById(id: "1") {
+#     nombre
+#     nacionalidad
+#     albumes {
+#       id
+#       titulo
+#       precio
+#       genero
+#     }
+#   }
+# }
+#
+# 4. BUSCAR ARTISTAS POR NOMBRE (CON SUS ÁLBUMES):
+# query {
+#   artistasByNombre(nombre: "Queen") {
+#     nombre
+#     albumes {
+#       titulo
+#     }
+#   }
+# }
+# ==========================================================================

@@ -1,0 +1,73 @@
+### Todos los albumes con sus artistas
+GRAPHQL http://localhost:3000/graphql
+
+query {
+    albumes {
+        id
+        titulo
+        precio
+        genero
+        fechaLanzamiento
+        artista {
+            id
+            nombre
+            nacionalidad
+        }
+    }
+}
+
+### Album por Id (Busca el album con ID 1)
+GRAPHQL http://localhost:3000/graphql
+
+query {
+    albumById(id: "1") {
+        titulo
+        precio
+        genero
+        artista {
+            nombre
+        }
+    }
+}
+
+### Artista por Id con sus albumes (Busca artista con ID 1)
+GRAPHQL http://localhost:3000/graphql
+
+query {
+    artistaById(id: "1") {
+        nombre
+        nacionalidad
+        albumes {
+            id
+            titulo
+            precio
+            genero
+        }
+    }
+}
+
+### Solo titulos y nombres (Consulta ligera)
+GRAPHQL http://localhost:3000/graphql
+
+query {
+    albumes {
+        titulo
+        genero
+        artista {
+            nombre
+        }
+    }
+}
+
+### Buscar artistas por nombre (Ejemplo: busca "Queen" o el que tengas)
+GRAPHQL http://localhost:3000/graphql
+
+query {
+    artistasByNombre(nombre: "Queen") {
+        id
+        nombre
+        albumes {
+            titulo
+        }
+    }
+}

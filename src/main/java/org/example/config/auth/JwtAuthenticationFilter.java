@@ -1,7 +1,7 @@
 package org.example.config.auth;
 
-import org.example.auth.services.jwt.JwtService;
-import org.example.auth.services.users.AuthUsersService;
+import org.example.rest.auth.services.jwt.JwtService;
+import org.example.rest.auth.services.users.AuthUsersService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

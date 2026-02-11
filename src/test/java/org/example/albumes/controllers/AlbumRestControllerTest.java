@@ -1,12 +1,11 @@
 package org.example.albumes.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.example.albumes.dto.AlbumCreateDto;
-import org.example.albumes.dto.AlbumResponseDto;
-import org.example.albumes.dto.AlbumUpdateDto;
-import org.example.albumes.models.Album;
-import org.example.albumes.services.AlbumService;
-import org.example.artistas.models.Artista;
+import org.example.rest.albumes.dto.AlbumCreateDto;
+import org.example.rest.albumes.dto.AlbumResponseDto;
+import org.example.rest.albumes.dto.AlbumUpdateDto;
+import org.example.rest.albumes.services.AlbumService;
+import org.example.rest.artistas.models.Artista;
 import org.example.utils.pagination.PaginationLinksUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

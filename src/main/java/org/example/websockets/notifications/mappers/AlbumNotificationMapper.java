@@ -1,6 +1,6 @@
 package org.example.websockets.notifications.mappers;
 
-import org.example.albumes.models.Album;
+import org.example.rest.albumes.models.Album;
 import org.example.websockets.notifications.dto.AlbumNotificationResponse;
 import org.springframework.stereotype.Component;
 
