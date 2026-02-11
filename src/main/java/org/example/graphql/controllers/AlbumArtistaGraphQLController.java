@@ -55,7 +55,7 @@ public class AlbumArtistaGraphQLController {
         return artistasRepository.findByNombreContainingIgnoreCase(nombre);
     }
 
-    // --- RESOLVERS DE RELACIONES (SchemaMapping) ---
+    // --- RESOLVERS DE RELACIONES (SchemaMapping) ---  los get los tengo aqui
 
     // Cuando alguien pide el campo "artista" dentro de un "Album"
     @SchemaMapping(typeName = "Album", field = "artista")

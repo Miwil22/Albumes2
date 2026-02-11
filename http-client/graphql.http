@@ -59,7 +59,7 @@ query {
     }
 }
 
-### Buscar artistas por nombre (Ejemplo: busca "Queen" o el que tengas)
+### Buscar artistas por nombre (Ejemplo: busca "Queen")
 GRAPHQL http://localhost:3000/graphql
 
 query {
