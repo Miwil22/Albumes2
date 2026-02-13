@@ -8,26 +8,25 @@ import java.time.LocalDateTime;
 
 @Component
 public class ArtistasMapper {
-
-    public Artista toArtista(ArtistaRequestDto dto) {
+    public Artista toArtista(ArtistaRequestDto artistaRequestDto) {
         return Artista.builder()
-                .id(null)
-                .nombre(dto.getNombre())
-                .nacionalidad(dto.getNacionalidad())
+                .nombre(artistaRequestDto.getNombre())
+                .nacionalidad(artistaRequestDto.getNacionalidad())
+                .biografia(artistaRequestDto.getBiografia())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
-                .isDeleted(false)
                 .build();
     }
 
-    public Artista toArtista(ArtistaRequestDto dto, Artista artista) {
+    public Artista toArtista(ArtistaRequestDto artistaRequestDto, Artista artista) {
         return Artista.builder()
                 .id(artista.getId())
-                .nombre(dto.getNombre() != null ? dto.getNombre() : artista.getNombre())
-                .nacionalidad(dto.getNacionalidad() != null ? dto.getNacionalidad() : artista.getNacionalidad())
+                .nombre(artistaRequestDto.getNombre() != null ? artistaRequestDto.getNombre() : artista.getNombre())
+                .nacionalidad(artistaRequestDto.getNacionalidad() != null ? artistaRequestDto.getNacionalidad() : artista.getNacionalidad())
+                .biografia(artistaRequestDto.getBiografia() != null ? artistaRequestDto.getBiografia() : artista.getBiografia())
+                .isDeleted(artista.getIsDeleted())
                 .createdAt(artista.getCreatedAt())
-                .updatedAt(LocalDateTime.now()) // Actualizamos fecha modificación
-                .isDeleted(dto.getIsDeleted() != null ? dto.getIsDeleted() : artista.getIsDeleted())
+                .updatedAt(LocalDateTime.now())
                 .build();
     }
 }

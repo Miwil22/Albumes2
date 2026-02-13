@@ -36,9 +36,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Controlador de albumes del tipo RestController
+ * Controlador de productos del tipo RestController
  * Fijamos la ruta de acceso a este controlador
- * Usamos el repositorio de albumes y lo inyectamos en el constructor con Autowired
+ * Usamos el repositorio de productos y lo inyectamos en el constructor con Autowired
  * RequiredArgsConstructor es una anotación Lombok que nos permite inyectar dependencias basadas
  * en las anotaciones @Controller, @Service, @Component, etc.
  * y que se encuentren en nuestro contenedor de Spring
@@ -58,15 +58,15 @@ public class AlbumRestController {
      * Obtiene todos los albumes
      *
      * @param titulo    Título del album
-     * @param genero    Género del album
-     * @param isDeleted Si está borrado o no
+     * @param artista   Artista del album
+     * @param isDeleted Si está borrada o no
      * @return Lista paginada de albumes
      */
     @Operation(summary = "Obtiene todos los albumes", description = "Obtiene una lista de albumes")
     @Parameters({
             @Parameter(name = "titulo", description = "Título del album", example = ""),
-            @Parameter(name = "genero", description = "Género del album", example = ""),
-            @Parameter(name = "isDeleted", description = "Si está borrado o no", example = "false"),
+            @Parameter(name = "artista", description = "Artista del album", example = ""),
+            @Parameter(name = "isDeleted", description = "Si está borrada o no", example = "false"),
             @Parameter(name = "page", description = "Número de página", example = "0"),
             @Parameter(name = "size", description = "Tamaño de la página", example = "10"),
             @Parameter(name = "sortBy", description = "Campo de ordenación", example = "id"),
@@ -81,20 +81,20 @@ public class AlbumRestController {
     @GetMapping()
     public ResponseEntity<PageResponse<AlbumResponseDto>> getAll(
             @RequestParam(required = false) Optional<String> titulo,
-            @RequestParam(required = false) Optional<String> genero,
+            @RequestParam(required = false) Optional<String> artista,
             @RequestParam(required = false) Optional<Boolean> isDeleted,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String direction,
             HttpServletRequest request) {
-        log.info("Buscando albumes por titulo={}, genero={}, isDeleted={}", titulo, genero,  isDeleted);
+        log.info("Buscando albumes por titulo={}, artista={}, isDeleted={}", titulo, artista,  isDeleted);
         // Creamos el objeto de ordenación
         Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         // Creamos cómo va a ser la paginación
         Pageable pageable = PageRequest.of(page, size, sort);
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(request.getRequestURL().toString());
-        Page<AlbumResponseDto> pageResult = albumService.findAll(titulo, genero, isDeleted, pageable);
+        Page<AlbumResponseDto> pageResult = albumService.findAll(titulo, artista, isDeleted, pageable);
         return ResponseEntity.ok()
                 .header("link", paginationLinksUtils.createLinkHeader(pageResult, uriBuilder))
                 .body(PageResponse.of(pageResult, sortBy, direction));
@@ -125,7 +125,7 @@ public class AlbumRestController {
      * Crear un album
      *
      * @param albumCreateDto a crear
-     * @return AlbumResponseDto creado
+     * @return AlbumResponseDto creada
      * @throws AlbumBadRequestException si el album no es correcto (400)
      */
     @Operation(summary = "Crea un album", description = "Crea un album")
@@ -147,7 +147,7 @@ public class AlbumRestController {
      *
      * @param id      del album a actualizar
      * @param albumUpdateDto con los datos a actualizar
-     * @return AlbumResponseDto actualizado
+     * @return AlbumResponseDto actualizada
      * @throws AlbumNotFoundException si no existe el album (404)
      * @throws AlbumBadRequestException si el album no es correcto (400)
      */
@@ -172,7 +172,7 @@ public class AlbumRestController {
      *
      * @param id      del album a actualizar
      * @param albumUpdateDto con los datos a actualizar
-     * @return Album actualizado
+     * @return Album actualizada
      * @throws AlbumNotFoundException si no existe el album (404)
      * @throws AlbumBadRequestException si el album no es correcto (400)
      */
@@ -196,7 +196,7 @@ public class AlbumRestController {
      * Borra un album por su id
      *
      * @param id del album a borrar
-     * @return ResponseEntity con status 204 No Content si se ha conseguido borrar
+     * @return ResponseEntity con status 204 No Content si se ha conseguido borradr
      * @throws AlbumNotFoundException si no existe el album (404)
      */
     @Operation(summary = "Borra un album", description = "Borra un album")
@@ -209,7 +209,7 @@ public class AlbumRestController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        log.info("Borrando album por id: {}", id);
+        log.info("Borrando producto por id: {}", id);
         albumService.deleteById(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

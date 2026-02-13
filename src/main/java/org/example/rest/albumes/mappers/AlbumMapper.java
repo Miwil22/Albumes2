@@ -1,8 +1,8 @@
-package org.example.albumes.mappers;
+package org.example.rest.albumes.mappers;
 
-import org.example.albumes.dto.AlbumCreateDto;
-import org.example.albumes.dto.AlbumResponseDto;
-import org.example.albumes.dto.AlbumUpdateDto;
+import org.example.rest.albumes.dto.AlbumCreateDto;
+import org.example.rest.albumes.dto.AlbumResponseDto;
+import org.example.rest.albumes.dto.AlbumUpdateDto;
 import org.example.rest.albumes.models.Album;
 import org.example.rest.artistas.models.Artista;
 import org.springframework.data.domain.Page;
@@ -14,52 +14,51 @@ import java.util.UUID;
 
 @Component
 public class AlbumMapper {
-
-    public Album toAlbum(AlbumCreateDto albumCreateDto, Artista artista) {
+    public Album toAlbum(AlbumCreateDto dto, Artista artista) {
         return Album.builder()
                 .id(null)
-                .titulo(albumCreateDto.getTitulo())
-                .genero(albumCreateDto.getGenero())
-                .fechaLanzamiento(albumCreateDto.getFechaLanzamiento())
+                .titulo(dto.getTitulo())
+                .genero(dto.getGenero())
+                .fechaLanzamiento(dto.getFechaLanzamiento())
+                .precio(dto.getPrecio())
+                .portada(dto.getPortada())
                 .artista(artista)
-                .precio(albumCreateDto.getPrecio())
-                .portada(albumCreateDto.getPortada())
                 .uuid(UUID.randomUUID())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
-                .isDeleted(false)
                 .build();
     }
 
-    public Album toAlbum(AlbumUpdateDto albumUpdateDto, Album album) {
+    public Album toAlbum(AlbumUpdateDto dto, Album album) {
         return Album.builder()
                 .id(album.getId())
-                .titulo(albumUpdateDto.getTitulo() != null ? albumUpdateDto.getTitulo() : album.getTitulo())
-                .genero(albumUpdateDto.getGenero() != null ? albumUpdateDto.getGenero() : album.getGenero())
-                .fechaLanzamiento(albumUpdateDto.getFechaLanzamiento() != null ? albumUpdateDto.getFechaLanzamiento() : album.getFechaLanzamiento())
-                // Mantenemos el artista original
+                .titulo(dto.getTitulo() != null ? dto.getTitulo() : album.getTitulo())
+                .genero(dto.getGenero() != null ? dto.getGenero() : album.getGenero())
+                .fechaLanzamiento(dto.getFechaLanzamiento() != null ? dto.getFechaLanzamiento() : album.getFechaLanzamiento())
+                .precio(dto.getPrecio() != null ? dto.getPrecio() : album.getPrecio())
+                .portada(dto.getPortada() != null ? dto.getPortada() : album.getPortada())
+                // Una vez creado el álbum, no se puede cambiar el artista
                 .artista(album.getArtista())
-                .precio(albumUpdateDto.getPrecio() != null ? albumUpdateDto.getPrecio() : album.getPrecio())
-                .portada(albumUpdateDto.getPortada() != null ? albumUpdateDto.getPortada() : album.getPortada())
                 .createdAt(album.getCreatedAt())
-                .updatedAt(LocalDateTime.now()) // Actualizamos fecha modificación
+                // no tenemos en cuenta este campo porque hemos definido valores por defecto en la entidad
+                // y automatismos en la base de datos
+                // .updatedAt(LocalDateTime.now())
                 .uuid(album.getUuid())
-                .isDeleted(album.getIsDeleted())
                 .build();
     }
 
     public AlbumResponseDto toAlbumResponseDto(Album album) {
         return AlbumResponseDto.builder()
                 .id(album.getId())
+                .uuid(album.getUuid())
                 .titulo(album.getTitulo())
                 .genero(album.getGenero())
                 .fechaLanzamiento(album.getFechaLanzamiento())
-                .artista(album.getArtista() != null ? album.getArtista().getNombre() : "Desconocido")
                 .precio(album.getPrecio())
                 .portada(album.getPortada())
-                .createdAt(album.getCreatedAt())
-                .updatedAt(album.getUpdatedAt())
-                .uuid(album.getUuid())
+                .isDeleted(album.getIsDeleted())
+                .artista(album.getArtista() != null ? album.getArtista().getNombre() : null)
+                .artistaId(album.getArtista() != null ? album.getArtista().getId() : null)
                 .build();
     }
 
