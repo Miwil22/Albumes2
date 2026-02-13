@@ -1,0 +1,32 @@
+{% extends "fragments/layout" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ getMessage('nav.mis_albumes') }}</h2>
+    <p class="lead">Bienvenido, {{ username }}. Estos son los álbumes que gestionas.</p>
+
+    <div class="row g-4 mt-2">
+        {% for album in albumes %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-primary">
+                <div class="card-body">
+                    <h5 class="card-title">{{ album.titulo }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ album.artista.nombre }}</h6>
+                    <p class="card-text">
+                        <span class="badge bg-info text-dark">{{ album.genero }}</span><br>
+                        Precio: <strong>{{ album.precio | formatPrice }}</strong>
+                    </p>
+                    <a href="/app/misalbumes/{{ album.id }}" class="card-link stretched-link">Ver detalles</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-warning">
+                No tienes álbumes asignados o no eres el manager de ninguna banda activa.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

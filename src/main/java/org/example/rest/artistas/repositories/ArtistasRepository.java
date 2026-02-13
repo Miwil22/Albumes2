@@ -12,24 +12,22 @@ import java.util.Optional;
 
 @Repository
 public interface ArtistasRepository extends JpaRepository<Artista, Long>, JpaSpecificationExecutor<Artista> {
+
     // Encontrar por nombre exacto
     Optional<Artista> findByNombreEqualsIgnoreCase(String nombre);
 
-    // Artistas por nombre
+    // Búsqueda parcial por nombre
     List<Artista> findByNombreContainingIgnoreCase(String nombre);
 
-    // Si están borrados
+    // Buscar borrados
     List<Artista> findByIsDeleted(Boolean isDeleted);
 
-    // Actualizar el artista con isDeleted a true
-    @Modifying // Para indicar que es una consulta de actualización
+    // Borrado lógico
+    @Modifying
     @Query("UPDATE Artista a SET a.isDeleted = true WHERE a.id = :id")
-    // Consulta de actualización
     void updateIsDeletedToTrueById(Long id);
 
-    // Obtiene si existe un álbum con el id del artista
-    // Adaptado: Tarjeta -> Album
+    // Comprobar si tiene álbumes asociados antes de borrar
     @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Album a WHERE a.artista.id = :id")
     Boolean existsAlbumById(Long id);
-
 }

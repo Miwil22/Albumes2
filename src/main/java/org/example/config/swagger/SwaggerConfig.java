@@ -31,7 +31,7 @@ class SwaggerConfig {
         return new OpenAPI()
                 .info(
                         new Info()
-                                .title("API REST Gestión de Álbumes Spring Boot DAW 2025/2026")
+                                .title("API REST Gestión de Albumes Spring Boot DAW 2025/2026")
                                 .version("1.0.0")
                                 .description("API de ejemplo del curso Desarrollo de un API REST con Spring Boot para 2º DAW. 2025/2026")
                                 .termsOfService("https://carlosgs.dev/docs/license/")
@@ -42,21 +42,21 @@ class SwaggerConfig {
                                 )
                                 .contact(
                                         new Contact()
-                                                .name("Miwil22") // He puesto tu usuario como contacto, puedes cambiarlo
-                                                .email("tu-email@ejemplo.com")
-                                                .url("https://github.com/Miwil22")
+                                                .name("Carlos González Sánchez")
+                                                .email("carlosgs.iesquevedo@gmail.com")
+                                                .url("https://carlosgs.dev")
                                 )
 
                 )
                 .externalDocs(
                         new ExternalDocumentation()
                                 .description("Documentación del Proyecto")
-                                .url("https://github.com/Miwil22/Albumes2")
+                                .url("https://github.com/carlosgs-iesquevedo/DWES25-26")
                 )
                 .externalDocs(
                         new ExternalDocumentation()
                                 .description("GitHub del Proyecto")
-                                .url("https://github.com/Miwil22/Albumes2")
+                                .url("https://github.com/carlosgs-iesquevedo/DWES25-26")
                 )
                 // Añadimos la seguridad JWT
                 .addSecurityItem(new SecurityRequirement().
@@ -70,8 +70,10 @@ class SwaggerConfig {
     GroupedOpenApi httpApi() {
         return GroupedOpenApi.builder()
                 .group("http")
-                .pathsToMatch("/api/" + apiVersion + "/**")
-                .displayName("API Gestión de Álbumes Spring Boot DAW 2025/2026")
+                // Algunas rutas son JWT
+                // .pathsToMatch("/v1/**") // Todas las rutas
+                .pathsToMatch("/api/" + apiVersion + "/albumes/**") //Solo albumes
+                .displayName("API Gestión de Albumes Spring Boot DAW 2025/2026")
                 .build();
     }
 }

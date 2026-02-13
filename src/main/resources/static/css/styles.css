@@ -1,0 +1,5 @@
+/* Estilos adicionales aparte de los de Boostrap */
+body {
+    background: url(/images/fondo.jpg) no-repeat center center fixed;
+    background-size: cover;
+}

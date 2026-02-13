@@ -31,55 +31,59 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
-        log.info("Iniciando el filtro de autenticación");
+        log.info("Iniciando el filtro de autenticación JWT");
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         UserDetails userDetails = null;
         String userName = null;
 
         // Si no tenemos cabecera o no empieza por Bearer, no hacemos nada
+        // (Esto permite que la parte WEB MVC siga funcionando con Cookies de sesión)
         if (!StringUtils.hasText(authHeader) || !StringUtils.startsWithIgnoreCase(authHeader, "Bearer ")) {
-            log.info("No se ha encontrado cabecera de autenticación, se ignora");
+            // log.info("No se ha encontrado cabecera de autenticación Bearer, se ignora (posible petición Web)");
             filterChain.doFilter(request, response);
             return;
         }
 
-        log.info("Se ha encontrado cabecera de autenticación, se procesa");
+        log.info("Se ha encontrado cabecera de autenticación Bearer, se procesa");
         // Si tenemos cabecera, la extraemos y comprobamos que sea válida
         jwt = authHeader.substring(7);
+
         // Lo primero que debemos ver es que el token es válido
         try {
             userName = jwtService.extractUserName(jwt);
         } catch (Exception e) {
-            log.info("Token no válido");
+            log.info("Token no válido: {}", e.getMessage());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token no autorizado o no válido");
             return;
         }
-        log.info("Usuario autenticado: {}", userName);
+
+        log.info("Usuario autenticado en el token: {}", userName);
+
         if (StringUtils.hasText(userName)
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // Comprobamos que el usuario existe y que el token es válido
-            log.info("Comprobando usuario y token");
+            // Comprobamos que el usuario existe en la BD
+            log.info("Comprobando existencia del usuario");
             try {
                 userDetails = authUsersService.loadUserByUsername(userName);
             } catch (Exception e) {
-                log.info("Usuario no encontrado: {}", userName);
+                log.info("Usuario no encontrado en BD: {}", userName);
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Usuario no autorizado");
                 return;
             }
-            authUsersService.loadUserByUsername(userName);
-            log.info("Usuario encontrado: {}", userDetails);
+
+            // Validamos el token contra los detalles del usuario
             if (jwtService.isTokenValid(jwt, userDetails)) {
-                log.info("JWT válido");
-                // Si es válido, lo autenticamos en el contexto de seguridad
+                log.info("JWT válido. Estableciendo contexto de seguridad.");
+
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
-                // Añadimos los detalles de la petición
+
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
+
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                // Lo añadimos al contexto de seguridad
+
                 context.setAuthentication(authToken);
-                // Y lo añadimos al contexto de seguridad
                 SecurityContextHolder.setContext(context);
             }
         }

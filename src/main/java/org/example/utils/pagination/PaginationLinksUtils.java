@@ -4,12 +4,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
+// Componente estándar para generar las cabeceras de paginación (Link Header)
 @Component
 public class PaginationLinksUtils {
 
     public String createLinkHeader(Page<?> page, UriComponentsBuilder uriBuilder) {
         final StringBuilder linkHeader = new StringBuilder();
-        linkHeader.append("");
 
         if (page.hasNext()) {
             String uri = constructUri(page.getNumber() + 1, page.getSize(), uriBuilder);
@@ -41,6 +41,7 @@ public class PaginationLinksUtils {
         return uriBuilder.replaceQueryParam("page", newPageNumber)
                 .replaceQueryParam("size", size)
                 .build()
+                .encode()
                 .toUriString();
     }
 

@@ -1,35 +1,40 @@
-package org.example.rest.albumes.dto;
+package org.example.albumes.dto;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Data;
-import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDate;
 
 @Builder
 @Data
+@Schema(description = "Album a crear")
 public class AlbumCreateDto {
+
     @NotBlank(message = "El título no puede estar vacío")
-    @Length(min = 3, message = "El título debe tener al menos 3 caracteres")
+    @Size(min = 2, max = 100, message = "El título debe tener entre 2 y 100 caracteres")
+    @Schema(description = "Título del álbum", example = "The Black Parade")
     private final String titulo;
 
     @NotBlank(message = "El género no puede estar vacío")
+    @Schema(description = "Género musical", example = "Rock")
     private final String genero;
 
-    @NotNull(message = "La fecha de lanzamiento no puede ser nula")
+    @NotNull(message = "La fecha de lanzamiento es obligatoria")
+    @PastOrPresent(message = "La fecha de lanzamiento no puede ser futura")
+    @Schema(description = "Fecha de lanzamiento", example = "2006-10-23")
     private final LocalDate fechaLanzamiento;
 
-    @NotNull(message = "El precio no puede ser nulo")
-    @DecimalMin(value = "0.0", message = "El precio no puede ser negativo")
+    @NotBlank(message = "El nombre del artista no puede estar vacío")
+    @Schema(description = "Nombre del artista o banda", example = "My Chemical Romance")
+    private final String artista; // Usaremos el nombre para buscarlo o crearlo
+
+    @NotNull(message = "El precio es obligatorio")
+    @Positive(message = "El precio debe ser mayor que 0")
+    @Schema(description = "Precio del álbum", example = "19.99")
     private final Double precio;
 
+    @Schema(description = "URL de la portada", example = "https://example.com/cover.jpg")
     private final String portada;
-
-    private final String descripcion;
-
-    @NotNull(message = "El ID del artista no puede ser nulo")
-    private final Long artistaId;
 }

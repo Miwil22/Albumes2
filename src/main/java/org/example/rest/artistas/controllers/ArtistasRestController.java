@@ -28,8 +28,8 @@ import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
-@RestController // Es un controlador Rest
-@RequestMapping("api/${api.version}/artistas") // Es la ruta del controlador
+@RestController
+@RequestMapping("api/${api.version}/artistas")
 public class ArtistasRestController {
     private final ArtistasService artistasService;
     private final PaginationLinksUtils paginationLinksUtils;
@@ -45,28 +45,18 @@ public class ArtistasRestController {
             HttpServletRequest request
     ) {
         log.info("Buscando todos los artistas con nombre={} isDeleted={}", nombre, isDeleted);
-        // Creamos el objeto de ordenación
-        Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        // Creamos cómo va a ser la paginación
+
+        Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+
         Pageable pageable = PageRequest.of(page, size, sort);
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(request.getRequestURL().toString());
+
         Page<Artista> pageResult = artistasService.findAll(nombre, isDeleted, pageable);
+
         return ResponseEntity.ok()
                 .header("link", paginationLinksUtils.createLinkHeader(pageResult, uriBuilder))
-                .body(new PageResponse<>(
-                        pageResult.getContent(),
-                        pageResult.getTotalPages(),
-                        pageResult.getTotalElements(),
-                        pageResult.getSize(),
-                        pageResult.getNumber(),
-                        pageResult.getNumberOfElements(),
-                        pageResult.isEmpty(),
-                        pageResult.isFirst(),
-                        pageResult.isLast(),
-                        sortBy,
-                        direction
-                ));
-
+                .body(PageResponse.of(pageResult, sortBy, direction));
     }
 
     @GetMapping("/{id}")
@@ -95,20 +85,13 @@ public class ArtistasRestController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    /**
-     * Manejador de excepciones de Validación: 400 Bad Request
-     *
-     * @param ex excepción
-     * @return Mapa de errores de validación con el campo y el mensaje
-     */
+    // --- Manejo de errores de validación ---
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
-
+    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-
         BindingResult result = ex.getBindingResult();
+
         problemDetail.setDetail("Falló la validación para el objeto='" + result.getObjectName()
                 + "'. " + "Núm. errores: " + result.getErrorCount());
 

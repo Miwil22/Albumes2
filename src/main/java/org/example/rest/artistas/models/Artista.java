@@ -1,12 +1,11 @@
 package org.example.rest.artistas.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
-import lombok.*;
 import org.example.rest.albumes.models.Album;
 import org.example.rest.users.models.User;
+import jakarta.persistence.*;
+import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,13 +22,12 @@ public class Artista {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String nombre;
 
     @Column(nullable = false)
     private String nacionalidad;
-    private LocalDate fechaNacimiento;
-    private String imagen;
+
     @Column(columnDefinition = "TEXT")
     private String biografia;
 
@@ -45,11 +43,14 @@ public class Artista {
     @Builder.Default
     private Boolean isDeleted = false;
 
+    // Relación OneToMany con Albumes
     @OneToMany(mappedBy = "artista")
     @JsonIgnoreProperties("artista")
+    @ToString.Exclude
     private List<Album> albumes;
 
+    // Relación OneToOne con Usuario (Manager)
     @OneToOne(mappedBy = "artista")
-    @JsonIgnoreProperties("artista")
+    @ToString.Exclude
     private User usuario;
 }

@@ -1,48 +1,50 @@
-package org.example.rest.albumes.mappers;
+package org.example.albumes.mappers;
 
-import org.example.rest.albumes.dto.AlbumCreateDto;
-import org.example.rest.albumes.dto.AlbumResponseDto;
-import org.example.rest.albumes.dto.AlbumUpdateDto;
+import org.example.albumes.dto.AlbumCreateDto;
+import org.example.albumes.dto.AlbumResponseDto;
+import org.example.albumes.dto.AlbumUpdateDto;
 import org.example.rest.albumes.models.Album;
 import org.example.rest.artistas.models.Artista;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Component
 public class AlbumMapper {
 
-    public Album toAlbum(AlbumCreateDto dto, Artista artista) {
+    public Album toAlbum(AlbumCreateDto albumCreateDto, Artista artista) {
         return Album.builder()
-                .titulo(dto.getTitulo())
-                .genero(dto.getGenero())
-                .fechaLanzamiento(dto.getFechaLanzamiento())
-                .precio(dto.getPrecio())
-                .portada(dto.getPortada())
-                .descripcion(dto.getDescripcion())
+                .id(null)
+                .titulo(albumCreateDto.getTitulo())
+                .genero(albumCreateDto.getGenero())
+                .fechaLanzamiento(albumCreateDto.getFechaLanzamiento())
                 .artista(artista)
+                .precio(albumCreateDto.getPrecio())
+                .portada(albumCreateDto.getPortada())
                 .uuid(UUID.randomUUID())
-                .isDeleted(false)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .isDeleted(false)
                 .build();
     }
 
-    public Album toAlbum(AlbumUpdateDto dto, Album album, Artista artista) {
+    public Album toAlbum(AlbumUpdateDto albumUpdateDto, Album album) {
         return Album.builder()
                 .id(album.getId())
-                .uuid(album.getUuid())
-                .titulo(dto.getTitulo() != null ? dto.getTitulo() : album.getTitulo())
-                .genero(dto.getGenero() != null ? dto.getGenero() : album.getGenero())
-                .fechaLanzamiento(dto.getFechaLanzamiento() != null ? dto.getFechaLanzamiento() : album.getFechaLanzamiento())
-                .precio(dto.getPrecio() != null ? dto.getPrecio() : album.getPrecio())
-                .portada(dto.getPortada() != null ? dto.getPortada() : album.getPortada())
-                .descripcion(dto.getDescripcion() != null ? dto.getDescripcion() : album.getDescripcion())
-                .artista(artista != null ? artista : album.getArtista())
-                .isDeleted(dto.getIsDeleted() != null ? dto.getIsDeleted() : album.getIsDeleted())
+                .titulo(albumUpdateDto.getTitulo() != null ? albumUpdateDto.getTitulo() : album.getTitulo())
+                .genero(albumUpdateDto.getGenero() != null ? albumUpdateDto.getGenero() : album.getGenero())
+                .fechaLanzamiento(albumUpdateDto.getFechaLanzamiento() != null ? albumUpdateDto.getFechaLanzamiento() : album.getFechaLanzamiento())
+                // Mantenemos el artista original
+                .artista(album.getArtista())
+                .precio(albumUpdateDto.getPrecio() != null ? albumUpdateDto.getPrecio() : album.getPrecio())
+                .portada(albumUpdateDto.getPortada() != null ? albumUpdateDto.getPortada() : album.getPortada())
                 .createdAt(album.getCreatedAt())
-                .updatedAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now()) // Actualizamos fecha modificación
+                .uuid(album.getUuid())
+                .isDeleted(album.getIsDeleted())
                 .build();
     }
 
@@ -52,12 +54,24 @@ public class AlbumMapper {
                 .titulo(album.getTitulo())
                 .genero(album.getGenero())
                 .fechaLanzamiento(album.getFechaLanzamiento())
+                .artista(album.getArtista() != null ? album.getArtista().getNombre() : "Desconocido")
                 .precio(album.getPrecio())
                 .portada(album.getPortada())
-                .descripcion(album.getDescripcion())
-                .artista(album.getArtista())
-                .isDeleted(album.getIsDeleted())
+                .createdAt(album.getCreatedAt())
+                .updatedAt(album.getUpdatedAt())
                 .uuid(album.getUuid())
                 .build();
+    }
+
+    // Mapeamos de modelo a DTO (lista)
+    public List<AlbumResponseDto> toResponseDtoList(List<Album> albumes) {
+        return albumes.stream()
+                .map(this::toAlbumResponseDto)
+                .toList();
+    }
+
+    // Mapeamos de modelo a DTO (page)
+    public Page<AlbumResponseDto> toResponseDtoPage(Page<Album> albumes) {
+        return albumes.map(this::toAlbumResponseDto);
     }
 }

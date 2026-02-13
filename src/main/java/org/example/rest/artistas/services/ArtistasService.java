@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 
 public interface ArtistasService {
-    Page<Artista> findAll(Optional<String> nombre,  Optional<Boolean> isDeleted, Pageable pageable);
+    Page<Artista> findAll(Optional<String> nombre, Optional<Boolean> isDeleted, Pageable pageable);
 
     Artista findByNombre(String nombre);
 

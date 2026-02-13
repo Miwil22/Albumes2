@@ -31,77 +31,55 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @RequiredArgsConstructor
 @Configuration
 //@EnableWebSecurity // No hace falta en proyectos Spring Boot
-// Habilitamos la seguridad a nivel de método
-// ahora prePostEnabled está a true por defecto y @Secured se considera desfasado
-
 @EnableMethodSecurity(jsr250Enabled = true)
 public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final LoginSuccessHandler loginSuccessHandler;
 
     @Value("${api.version}")
     private String apiVersion;
 
+    // --- FILTRO 1: API REST + GRAPHQL (Autenticación por Token JWT) ---
     @Bean
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
+        // Definimos qué rutas maneja este filtro
         String[] apiPaths = { "/api/**", "/error/**", "/ws/**", "/graphql", "/graphiql", "/graphiql/**" };
 
         http
                 .securityMatcher(apiPaths)
-                // Podemos decir que forzamos el uso de HTTPS, para algunas rutas de la API o todas
-                // Requerimos HTTPS para todas las peticiones, pero ojo que devuelve 302 para los test
-                // .requiresChannel(channel -> channel.anyRequest().requiresSecure())
-
-                // Deshabilitamos CSRF
-                .csrf(AbstractHttpConfigurer::disable)
-                // Activamos CORS
-                .cors(Customizer.withDefaults())// CORS con opciones por defecto
-                // CORS opciones definidas en Bean: no hace falta especificar en SpringBoot
-                // porque detecta el Bean automáticamente
-                //.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // Sesiones
-                .sessionManagement(
-                        manager -> manager.sessionCreationPolicy(STATELESS))
-                // Lo primero es decir a qué URLs queremos dar acceso libre
-                // Lista blanca de comprobación
+                .csrf(AbstractHttpConfigurer::disable) // API REST no usa CSRF
+                .cors(Customizer.withDefaults())       // Activamos CORS
+                .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS)) // API es Stateless
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/error/**").permitAll()
-                        // Websockets para notificaciones
                         .requestMatchers("/ws/**").permitAll()
-                        // Otras rutas de la API podemos permitirlas o no....
+                        // Rutas API públicas
                         .requestMatchers("/api/" + apiVersion + "/**").permitAll()
-                        // graphql
+                        // GraphQL y su consola (GraphiQL) públicos para pruebas
                         .requestMatchers("/graphql", "/graphiql", "/graphiql/**").permitAll()
-                        // Podríamos jugar con permisos, por ejemplo para una ruta concreta
-                        //.requestMatchers("/" + apiVersion + "/auth/me").hasRole("ADMIN")
-                        // O con un acción HTTP, POST, PUT, DELETE, etc.
-                        //.requestMatchers(GET, "/" + apiVersion + "/auth/me").hasRole("ADMIN")
-                        // O con un patrón de ruta
-                        //.regexMatchers("/" + apiVersion + "/auth/me").hasRole("ADMIN")
-                        // El resto de peticiones tienen que estar autenticadas
+                        // El resto requiere autenticación
                         .anyRequest().authenticated())
-
-                // Añadimos el filtro de autenticación
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        // Devolvemos la configuración
+
         return http.build();
     }
 
-    // Este filtro permite el acceso a la documentación OpenAPI
+    // --- FILTRO 2: SWAGGER / OPENAPI (Documentación) ---
     @Bean
     @Order(2)
     public SecurityFilterChain openapiFilterChain(HttpSecurity http) throws Exception {
+        String[] swaggerPaths = { "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html"};
         http
-                .securityMatcher("/swagger-ui/**")
-                .securityMatcher("/v3/api-docs/**")
+                .securityMatcher(swaggerPaths)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll());
+                        .requestMatchers(swaggerPaths).permitAll());
         return http.build();
     }
 
-    // Este filtro permite el acceso a la consola de H2. Quitar en producción
+    // --- FILTRO 3: CONSOLA H2 (Base de datos en memoria) ---
     @Bean
     @Order(3)
     public SecurityFilterChain h2ConsoleFilterChain(HttpSecurity http) throws Exception {
@@ -111,6 +89,34 @@ public class SecurityConfig {
                         auth.requestMatchers(PathRequest.toH2Console()).permitAll())
                 .csrf(csrf -> csrf.ignoringRequestMatchers(PathRequest.toH2Console()))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
+        return http.build();
+    }
+
+    // --- FILTRO 4: WEB MVC (HTML con Thymeleaf/Pebble + Login Form) ---
+    @Bean
+    @Order(4)
+    public SecurityFilterChain formLoginFilterChain(HttpSecurity http) throws Exception {
+        http
+                // En Web MVC sí solemos querer CSRF, pero a veces se desactiva para facilitar desarrollo
+                //.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        // Zona Pública y recursos estáticos
+                        .requestMatchers("/public", "/public/", "/public/**").permitAll()
+                        .requestMatchers("/", "/auth/**", "/webjars/**", "/css/**", "/images/**").permitAll()
+                        // Zona Admin
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        // El resto (ej: /app/**) requiere estar logueado
+                        .anyRequest().authenticated())
+                .formLogin(form -> form
+                        .loginPage("/auth/login") // Página personalizada de login
+                        .successHandler(loginSuccessHandler) // Lógica post-login (cookies, redirección)
+                        .loginProcessingUrl("/auth/login-post") // Ruta donde el formulario hace POST
+                        .permitAll())
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessUrl("/public") // Al salir vamos a la home pública
+                        .permitAll());
+
         return http.build();
     }
 
@@ -137,6 +143,7 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.applyPermitDefaultValues();
+        // Aceptamos peticiones desde tu frontend o localhost
         configuration.setAllowedOrigins(List.of("http://mifrontend.es", "http://localhost:3000", "http://localhost:4200"));
         configuration.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "PATCH"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
