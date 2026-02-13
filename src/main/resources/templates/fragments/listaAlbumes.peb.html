@@ -1,0 +1,30 @@
+<!-- Lista de Albumes -->
+{% if page is empty %}
+<div class="alert alert-info text-center">
+  <i class="bi bi-info-circle"></i> No se han encontrado álbumes
+</div>
+{% else %}
+<table class="table table-striped" id="listaAlbumes">
+  <tr>
+    <th>ID</th>
+    <th>Título</th>
+    <th>Género</th>
+    <th>Precio</th>
+    <th>Artista</th>
+    <th>Acciones</th>
+  </tr>
+  {% for album in page.content %}
+  <tr>
+    <td class="albumId">{{ album.id }}</td>
+    <td>{{ album.titulo }} </td>
+    <td>{{ album.genero }}</td>
+    <td>{{ album.precio  | formatPrice }}</td>
+    <td>{{ album.artista }}</td>
+    <td><a href="/admin/albumes/{{ album.id }}"><i class="bi bi-eye"></i></a>
+      <a href="/admin/albumes/{{ album.id }}/edit"><i class="bi bi-pencil"></i></a>
+      <a class="borrarAlbumLink" href="#"><i class="bi bi-trash"></i></a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}

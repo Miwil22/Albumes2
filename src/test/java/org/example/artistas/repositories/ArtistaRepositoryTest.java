@@ -6,10 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.jdbc.Sql;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,9 +19,6 @@ class ArtistaRepositoryTest {
 
     @Autowired
     private ArtistasRepository artistasRepository;
-
-    @Autowired
-    private TestEntityManager entityManager;
 
     @BeforeEach
     void setUp() {
@@ -38,7 +33,6 @@ class ArtistaRepositoryTest {
         Artista artista = Artista.builder()
                 .nombre("Queen")
                 .nacionalidad("UK")
-                .fechaNacimiento(LocalDate.now())
                 .build();
         artistasRepository.save(artista);
 
@@ -56,7 +50,6 @@ class ArtistaRepositoryTest {
         Artista artista = Artista.builder()
                 .nombre("Queen")
                 .nacionalidad("UK")
-                .fechaNacimiento(LocalDate.now())
                 .build();
         artistasRepository.save(artista);
 
@@ -74,17 +67,14 @@ class ArtistaRepositoryTest {
         Artista artista1 = Artista.builder()
                 .nombre("Queen")
                 .nacionalidad("UK")
-                .fechaNacimiento(LocalDate.now())
                 .build();
         Artista artista2 = Artista.builder()
                 .nombre("Queens of the Stone Age")
                 .nacionalidad("USA")
-                .fechaNacimiento(LocalDate.now())
                 .build();
         Artista artista3 = Artista.builder()
                 .nombre("Nirvana")
                 .nacionalidad("USA")
-                .fechaNacimiento(LocalDate.now())
                 .build();
 
         artistasRepository.saveAll(List.of(artista1, artista2, artista3));
@@ -102,7 +92,6 @@ class ArtistaRepositoryTest {
         Artista artista = Artista.builder()
                 .nombre("Test")
                 .nacionalidad("ES")
-                .fechaNacimiento(LocalDate.now())
                 .build();
         Artista saved = artistasRepository.save(artista);
 
@@ -120,7 +109,6 @@ class ArtistaRepositoryTest {
         Artista artista = Artista.builder()
                 .nombre("New Artista")
                 .nacionalidad("IT")
-                .fechaNacimiento(LocalDate.now())
                 .build();
 
         // When
@@ -137,7 +125,6 @@ class ArtistaRepositoryTest {
         Artista artista = Artista.builder()
                 .nombre("Original")
                 .nacionalidad("ES")
-                .fechaNacimiento(LocalDate.now())
                 .build();
         Artista saved = artistasRepository.save(artista);
 
@@ -155,7 +142,6 @@ class ArtistaRepositoryTest {
         Artista artista = Artista.builder()
                 .nombre("To Delete")
                 .nacionalidad("DE")
-                .fechaNacimiento(LocalDate.now())
                 .build();
         Artista saved = artistasRepository.save(artista);
 
@@ -167,3 +153,4 @@ class ArtistaRepositoryTest {
         assertFalse(found.isPresent());
     }
 }
+

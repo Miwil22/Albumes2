@@ -1,21 +1,18 @@
 {% extends "fragments/layout" %}
 
-{% block content %}
-<div class="container mt-5">
-    <div class="card">
-        <div class="card-header">
-            Detalle de tu Álbum
-        </div>
-        <div class="card-body">
-            <h5 class="card-title">{{ album.titulo }}</h5>
-            <p class="card-text">
-                <strong>Artista:</strong> {{ album.artista.nombre }}<br>
-                <strong>Género:</strong> {{ album.genero }}<br>
-                <strong>Fecha Lanzamiento:</strong> {{ album.fechaLanzamiento | formatDate }}<br>
-                <strong>Precio:</strong> {{ album.precio | formatPrice }}
-            </p>
-            <a href="/app/misalbumes" class="btn btn-primary">Volver a la lista</a>
-        </div>
-    </div>
+{% block body %}
+
+{% if album is empty %}
+<div class="alert alert-info text-center">
+  <i class="bi bi-info-circle"></i> {{ message('label.album.empty') }}
 </div>
+{% else %}
+<h2> {{ message('label.album.detalle') }} {{ album.id }}</h2>
+<ul>
+  <li> {{ message('label.album.titulo') }}: {{ album.titulo }}</li>
+  <li> {{ message('label.album.artista') }}: {{ album.artista }}</li>
+</ul>
+{% endif %}
+
 {% endblock %}
+

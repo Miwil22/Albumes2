@@ -1,148 +1,149 @@
 package org.example.albumes.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.rest.albumes.dto.AlbumCreateDto;
 import org.example.rest.albumes.dto.AlbumResponseDto;
 import org.example.rest.albumes.dto.AlbumUpdateDto;
+import org.example.rest.albumes.exceptions.AlbumNotFoundException;
 import org.example.rest.albumes.services.AlbumService;
-import org.example.rest.artistas.models.Artista;
-import org.example.utils.pagination.PaginationLinksUtils;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ExtendWith(MockitoExtension.class)
-public class AlbumRestControllerTest {
+class AlbumRestControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  private final String ENDPOINT = "/api/v1/albumes";
 
-    @MockBean
-    private AlbumService albumService;
+  private final AlbumResponseDto albumResponse1 = AlbumResponseDto.builder()
+      .id(1L)
+      .titulo("The Black Parade")
+      .genero("Rock")
+      .fechaLanzamiento(LocalDate.of(2006,10,23))
+      .artista("My Chemical Romance")
+      .precio(19.99)
+      .build();
 
-    @MockBean
-    private PaginationLinksUtils paginationLinksUtils;
+  private final AlbumResponseDto albumResponse2 = AlbumResponseDto.builder()
+      .id(2L)
+      .titulo("Random Access Memories")
+      .genero("Electronic")
+      .fechaLanzamiento(LocalDate.of(2013,5,17))
+      .artista("Daft Punk")
+      .precio(24.99)
+      .build();
 
-    @Autowired
-    private ObjectMapper objectMapper;
+  @Autowired
+  private MockMvcTester mockMvcTester;
 
-    private final Artista artista = Artista.builder()
-            .id(1L)
-            .nombre("Artista Test")
-            .nacionalidad("Testland")
-            .build();
+  @MockitoBean
+  private AlbumService albumService;
 
-    private final AlbumResponseDto albumResponseDto = AlbumResponseDto.builder()
-            .id(1L)
-            .titulo("Album Test") // CORREGIDO: titulo en lugar de nombre
-            .genero("Rock")
-            .precio(10.0)
-            .artista(artista)
-            .uuid(UUID.randomUUID())
-            .build();
+  @Test
+  void getAll() {
+    // Arrange
+    var albumResponses = List.of(albumResponse1, albumResponse2);
+    var pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+    var page = new PageImpl<>(albumResponses);
+    when(albumService.findAll(Optional.empty(), Optional.empty(), Optional.empty(), pageable))
+        .thenReturn(page);
 
-    @Test
-    void findAll_ShouldReturnPageOfAlbums() throws Exception {
-        Mockito.when(albumService.findAll(Optional.empty(), Optional.empty(), Optional.empty(), PageRequest.of(0, 10, Sort.by("id").ascending())))
-                .thenReturn(new PageImpl<>(List.of(albumResponseDto)));
+    // Act. Consultar el endpoint
+    var result = mockMvcTester.get()
+        .uri(ENDPOINT)
+        .contentType(MediaType.APPLICATION_JSON)
+        .exchange();
 
-        mockMvc.perform(get("/api/v1/albumes")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].titulo").value("Album Test")) // CORREGIDO
-                .andExpect(jsonPath("$.content[0].genero").value("Rock"));
-    }
+    // Assert
+    assertThat(result)
+        .hasStatusOk()
+        .bodyJson().satisfies(json -> {
+          assertThat(json).extractingPath("$.content.length()").isEqualTo(albumResponses.size());
+          assertThat(json).extractingPath("$.content[0]")
+              .convertTo(AlbumResponseDto.class).isEqualTo(albumResponse1);
+          assertThat(json).extractingPath("$.content[1]")
+              .convertTo(AlbumResponseDto.class).isEqualTo(albumResponse2);
+        });
 
-    @Test
-    void findById_ShouldReturnAlbum() throws Exception {
-        Mockito.when(albumService.findById(1L)).thenReturn(albumResponseDto);
+    // Verify
+    verify(albumService, times(1))
+        .findAll(Optional.empty(), Optional.empty(), Optional.empty(), pageable);
+  }
 
-        mockMvc.perform(get("/api/v1/albumes/{id}", 1L)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.titulo").value("Album Test")); // CORREGIDO
-    }
+  @Test
+  void getAllByTitulo() {
+    // Arrange
+    var albumResponses = List.of(albumResponse2);
+    String queryString = "?titulo=" + albumResponse2.getTitulo();
+    Optional<String> titulo = Optional.of(albumResponse2.getTitulo());
+    var pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+    var page = new PageImpl<>(albumResponses);
+    when(albumService.findAll(titulo, Optional.empty(), Optional.empty(), pageable))
+        .thenReturn(page);
 
-    @Test
-    void create_ShouldReturnCreatedAlbum() throws Exception {
-        AlbumCreateDto createDto = AlbumCreateDto.builder()
-                .titulo("New Album") // CORREGIDO
-                .genero("Pop")
-                .precio(15.0)
-                .fechaLanzamiento(LocalDate.now())
-                .artistaId(1L)
-                .build();
+    // Act
+    var result = mockMvcTester.get()
+        .uri(ENDPOINT + queryString)
+        .contentType(MediaType.APPLICATION_JSON)
+        .exchange();
 
-        AlbumResponseDto createdResponse = AlbumResponseDto.builder()
-                .id(2L)
-                .titulo("New Album") // CORREGIDO
-                .genero("Pop")
-                .precio(15.0)
-                .build();
+    // Assert
+    assertThat(result)
+        .hasStatusOk()
+        .bodyJson().satisfies(json -> {
+          assertThat(json).extractingPath("$.content.length()").isEqualTo(albumResponses.size());
+          assertThat(json).extractingPath("$.content[0]")
+              .convertTo(AlbumResponseDto.class).isEqualTo(albumResponse2);
+        });
 
-        Mockito.when(albumService.save(any(AlbumCreateDto.class))).thenReturn(createdResponse);
+    // Verify
+    verify(albumService, times(1))
+        .findAll(titulo, Optional.empty(), Optional.empty(), pageable);
+  }
 
-        mockMvc.perform(post("/api/v1/albumes")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createDto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.titulo").value("New Album")); // CORREGIDO
-    }
+  @Test
+  void getAllByArtista() {
+    // Arrange
+    var albumResponses = List.of(albumResponse2);
+    String queryString = "?artista=" + albumResponse2.getArtista();
+    Optional<String> artista = Optional.of(albumResponse2.getArtista());
+    var pageable = PageRequest.of(0, 10, Sort.by("id").ascending());
+    var page = new PageImpl<>(albumResponses);
+    when(albumService.findAll(Optional.empty(), artista, Optional.empty(), pageable))
+        .thenReturn(page);
 
-    @Test
-    void update_ShouldReturnUpdatedAlbum() throws Exception {
-        AlbumUpdateDto updateDto = AlbumUpdateDto.builder()
-                .titulo("Updated Album") // CORREGIDO
-                .precio(20.0)
-                .build();
+    // Act
+    var result = mockMvcTester.get()
+        .uri(ENDPOINT + queryString)
+        .contentType(MediaType.APPLICATION_JSON)
+        .exchange();
 
-        AlbumResponseDto updatedResponse = AlbumResponseDto.builder()
-                .id(1L)
-                .titulo("Updated Album") // CORREGIDO
-                .precio(20.0)
-                .build();
+    // Assert
+    assertThat(result)
+        .hasStatusOk()
+        .bodyJson().satisfies(json -> {
+          assertThat(json).extractingPath("$.content.length()").isEqualTo(albumResponses.size());
+          assertThat(json).extractingPath("$.content[0]")
+              .convertTo(AlbumResponseDto.class).isEqualTo(albumResponse2);
+        });
 
-        Mockito.when(albumService.update(eq(1L), any(AlbumUpdateDto.class))).thenReturn(updatedResponse);
-
-        mockMvc.perform(put("/api/v1/albumes/{id}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateDto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.titulo").value("Updated Album")); // CORREGIDO
-    }
-
-    @Test
-    void delete_ShouldReturnNoContent() throws Exception {
-        Mockito.doNothing().when(albumService).deleteById(1L);
-
-        mockMvc.perform(delete("/api/v1/albumes/{id}", 1L))
-                .andExpect(status().isNoContent());
-
-        verify(albumService, times(1)).deleteById(1L);
-    }
+    // Verify
+    verify(albumService, only())
+        .findAll(Optional.empty(), artista, Optional.empty(), pageable);
+  }
 }

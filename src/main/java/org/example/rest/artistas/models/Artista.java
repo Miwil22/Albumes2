@@ -18,37 +18,35 @@ import java.util.List;
 @Entity
 @Table(name = "ARTISTAS")
 public class Artista {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column(unique = true, nullable = false, length = 100)
-    private String nombre;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+  @Column(unique = true, nullable = false,  length = 100)
+  private String nombre;
+  @Column(nullable = false)
+  private String nacionalidad;
+  @Column(columnDefinition = "TEXT")
+  private String biografia;
 
-    @Column(nullable = false)
-    private String nacionalidad;
+  @Builder.Default
+  @Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+  private LocalDateTime createdAt = LocalDateTime.now();
+  @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+  @Builder.Default
+  private LocalDateTime updatedAt =  LocalDateTime.now();
 
-    @Column(columnDefinition = "TEXT")
-    private String biografia;
+  @Column(columnDefinition = "boolean default false")
+  @Builder.Default
+  private Boolean isDeleted = false;
 
-    @Builder.Default
-    @Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdAt = LocalDateTime.now();
-    @Column(nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    @Builder.Default
-    private LocalDateTime updatedAt =  LocalDateTime.now();
+  // relación bidireccional de uno a muchos con Album
+  @OneToMany(mappedBy = "artista")
+  @JsonIgnoreProperties("artista")
+  @ToString.Exclude
+  private List<Album> albumes;
 
-    @Column(columnDefinition = "boolean default false")
-    @Builder.Default
-    private Boolean isDeleted = false;
-
-    // relación bidireccional de uno a muchos con Album
-    @OneToMany(mappedBy = "artista")
-    @JsonIgnoreProperties("artista")
-    @ToString.Exclude
-    private List<Album> albumes;
-
-    @OneToOne(mappedBy = "artista")
-    @ToString.Exclude
-    private User usuario;
+  @OneToOne(mappedBy = "artista")
+  @ToString.Exclude
+  private User usuario;
 
 }

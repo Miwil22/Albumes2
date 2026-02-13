@@ -5,13 +5,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.UUID;
 
-// Excepción de no encontrado
+/**
+ * Excepción de album no encontrado
+ * Status 404
+ */
 @ResponseStatus(HttpStatus.NOT_FOUND)
-public class AlbumNotFoundException extends AlbumException {
-    public AlbumNotFoundException(Long id) {
-        super("Álbum con id " + id + " no encontrado");
-    }
-    public AlbumNotFoundException(UUID uuid) {
-        super("Álbum con uuid " + uuid + " no encontrado");
-    }
+public class AlbumNotFoundException  extends AlbumException{
+  public AlbumNotFoundException(Long id) {
+    super("Album con id " + id + " no encontrado");
+  }
+  public AlbumNotFoundException(UUID uuid) {
+    super("Album con uuid " + uuid + " no encontrado");
+  }
 }

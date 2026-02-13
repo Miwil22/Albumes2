@@ -1,14 +1,14 @@
-package org.example.users.services;
+package org.example.rest.users.services;
 
-import org.example.albumes.repositories.AlbumRepository;
-import org.example.users.dto.UserInfoResponse;
-import org.example.users.dto.UserRequest;
-import org.example.users.dto.UserResponse;
-import org.example.users.exceptions.UserNameOrEmailExists;
-import org.example.users.exceptions.UserNotFound;
-import org.example.users.mappers.UsersMapper;
-import org.example.users.models.User;
-import org.example.users.repositories.UsersRepository;
+import org.example.rest.albumes.repositories.AlbumRepository;
+import org.example.rest.users.dto.UserInfoResponse;
+import org.example.rest.users.dto.UserRequest;
+import org.example.rest.users.dto.UserResponse;
+import org.example.rest.users.exceptions.UserNameOrEmailExists;
+import org.example.rest.users.exceptions.UserNotFound;
+import org.example.rest.users.mappers.UsersMapper;
+import org.example.rest.users.models.User;
+import org.example.rest.users.repositories.UsersRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

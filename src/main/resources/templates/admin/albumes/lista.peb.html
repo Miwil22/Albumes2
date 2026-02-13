@@ -1,0 +1,25 @@
+{% extends "fragments/layout" %}
+
+{% import "fragments/pager" %}
+
+{% block body %}
+
+<div class="row mb-4">
+  <div class="col-md-12">
+    {% include "fragments/messages" %}
+  </div>
+</div>
+
+{% include "fragments/listaAlbumes" %}
+
+{{ pager("Albumes", page, _context) }}
+
+<!-- div para el modal -->
+<div id="placeholder-modal"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ href('/js/app-lista.js') }}"></script>
+{% endblock %}
+

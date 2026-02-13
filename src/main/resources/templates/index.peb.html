@@ -1,46 +1,25 @@
 {% extends "fragments/layout" %}
 
-{% block content %}
-<div class="p-5 mb-4 bg-dark text-white rounded-3" style="background-image: url('/images/fondo.jpg'); background-size: cover; background-blend-mode: overlay;">
-    <div class="container-fluid py-5">
-        <h1 class="display-5 fw-bold">{{ getMessage('app.nombre') }}</h1>
-        <p class="col-md-8 fs-4">{{ getMessage('appDescription') }}</p>
-        {% if isAuthenticated %}
-        <a class="btn btn-primary btn-lg" href="/app/misalbumes" role="button">{{ getMessage('nav.mis_albumes') }}</a>
-        {% else %}
-        <a class="btn btn-primary btn-lg" href="/auth/login" role="button">{{ getMessage('nav.login') }}</a>
-        {% endif %}
-    </div>
-</div>
+{% block body %}
 
 <div class="container">
-    <h2 class="mb-4 border-bottom pb-2">Catálogo de Álbumes</h2>
-
-    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
-        {% for album in page.content %}
-        <div class="col">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-header bg-transparent border-0 pt-3">
-                    <span class="badge bg-secondary float-end">{{ album.genero }}</span>
-                </div>
-                <div class="card-body text-center">
-                    <h5 class="card-title fw-bold">{{ album.titulo }}</h5>
-                    <p class="card-text text-muted mb-1">{{ album.artista }}</p> <h4 class="text-primary mt-3">{{ album.precio | formatPrice }}</h4>
-                </div>
-                <div class="card-footer bg-transparent border-0 text-center pb-3">
-                    <small class="text-muted d-block mb-2">Lanzamiento: {{ album.fechaLanzamiento | formatDate }}</small>
-                </div>
-            </div>
-        </div>
-        {% else %}
-        <div class="col-12">
-            <div class="alert alert-info">No hay álbumes disponibles en este momento.</div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <div class="mt-4">
-        {% include "fragments/pager" with {"urlBase": "/public"} %}
-    </div>
+  <div class="p-5 mb-4 bg-light rounded-3">
+    <h1 class="display-5 fw-bold">Gestion de Albumes</h1>
+    <p class="col-md-8 fs-4">Una aplicacion de ejemplo de Spring MVC con Pebble.</p>
+    {% if isAuthenticated %}
+    <h1 class="display-4">Saludos, {{ username | default('Usuario') }} </h1>
+    {% else %}
+    <h1 class="display-4">Saludos, visitante</h1>
+    {% endif %}
+    <p class="text-center">
+      {% if isAdmin %}
+      <a class="btn btn-lg btn-primary" href="/admin/albumes">Ir al Panel de Administracion</a>
+      {% else %}
+      <a class="btn btn-lg btn-success" href="/app/misalbumes">Comenzar</a>
+      {% endif %}
+    </p>
+  </div>
 </div>
+
 {% endblock %}
+

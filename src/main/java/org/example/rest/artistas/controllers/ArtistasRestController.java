@@ -28,81 +28,86 @@ import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
-@RestController
-@RequestMapping("api/${api.version}/artistas")
+@RestController // Es un controlador Rest
+@RequestMapping("api/${api.version}/artistas") // Es la ruta del controlador
 public class ArtistasRestController {
-    private final ArtistasService artistasService;
-    private final PaginationLinksUtils paginationLinksUtils;
+  private final ArtistasService artistasService;
+  private final PaginationLinksUtils paginationLinksUtils;
 
-    @GetMapping()
-    public ResponseEntity<PageResponse<Artista>> getAll(
-            @RequestParam(required = false) Optional<String> nombre,
-            @RequestParam(required = false) Optional<Boolean> isDeleted,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String direction,
-            HttpServletRequest request
-    ) {
-        log.info("Buscando todos los artistas con nombre={} isDeleted={}", nombre, isDeleted);
+  @GetMapping()
+  public ResponseEntity<PageResponse<Artista>> getAll(
+      @RequestParam(required = false) Optional<String> nombre,
+      @RequestParam(required = false) Optional<Boolean> isDeleted,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "id") String sortBy,
+      @RequestParam(defaultValue = "asc") String direction,
+      HttpServletRequest request
+  ) {
+    log.info("Buscando todos los artistas con nombre={} isDeleted={}", nombre, isDeleted);
+    // Creamos el objeto de ordenación
+    Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+    // Creamos cómo va a ser la paginación
+    Pageable pageable = PageRequest.of(page, size, sort);
+    UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(request.getRequestURL().toString());
+    Page<Artista> pageResult = artistasService.findAll(nombre, isDeleted, pageable);
+    return ResponseEntity.ok()
+        .header("link", paginationLinksUtils.createLinkHeader(pageResult, uriBuilder))
+        .body(PageResponse.of(pageResult, sortBy, direction));
 
-        Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name())
-                ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+  }
 
-        Pageable pageable = PageRequest.of(page, size, sort);
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(request.getRequestURL().toString());
+  @GetMapping("/{id}")
+  public ResponseEntity<Artista> getById(@PathVariable Long id) {
+    log.info("Buscando artista por id={}", id);
+    return ResponseEntity.ok(artistasService.findById(id));
+  }
 
-        Page<Artista> pageResult = artistasService.findAll(nombre, isDeleted, pageable);
+  @PostMapping()
+  public ResponseEntity<Artista> create(@Valid @RequestBody ArtistaRequestDto artistaRequestDto) {
+    log.info("Creando artista : {}", artistaRequestDto);
+    var saved = artistasService.save(artistaRequestDto);
+    return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+  }
 
-        return ResponseEntity.ok()
-                .header("link", paginationLinksUtils.createLinkHeader(pageResult, uriBuilder))
-                .body(PageResponse.of(pageResult, sortBy, direction));
-    }
+  @PutMapping("/{id}")
+  public ResponseEntity<Artista> update(@PathVariable Long id, @Valid @RequestBody ArtistaRequestDto artistaRequestDto) {
+    log.info("Actualizando artista id={} con artista={}", id, artistaRequestDto);
+    return ResponseEntity.ok(artistasService.update(id, artistaRequestDto));
+  }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Artista> getById(@PathVariable Long id) {
-        log.info("Buscando artista por id={}", id);
-        return ResponseEntity.ok(artistasService.findById(id));
-    }
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> delete(@PathVariable Long id) {
+    log.info("Borrando artista por id: {}", id);
+    artistasService.deleteById(id);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
 
-    @PostMapping()
-    public ResponseEntity<Artista> create(@Valid @RequestBody ArtistaRequestDto artistaRequestDto) {
-        log.info("Creando artista : {}", artistaRequestDto);
-        var saved = artistasService.save(artistaRequestDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
-    }
+  /**
+   * Manejador de excepciones de Validación: 400 Bad Request
+   *
+   * @param ex excepción
+   * @return Mapa de errores de validación con el campo y el mensaje
+   */
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ProblemDetail handleValidationExceptions(
+      MethodArgumentNotValidException ex) {
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Artista> update(@PathVariable Long id, @Valid @RequestBody ArtistaRequestDto artistaRequestDto) {
-        log.info("Actualizando artista id={} con artista={}", id, artistaRequestDto);
-        return ResponseEntity.ok(artistasService.update(id, artistaRequestDto));
-    }
+    ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        log.info("Borrando artista por id: {}", id);
-        artistasService.deleteById(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
+    BindingResult result = ex.getBindingResult();
+    problemDetail.setDetail("Falló la validación para el objeto='" + result.getObjectName()
+        + "'. " + "Núm. errores: " + result.getErrorCount());
 
-    // --- Manejo de errores de validación ---
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        BindingResult result = ex.getBindingResult();
+    Map<String, String> errores = new HashMap<>();
+    result.getAllErrors().forEach((error) -> {
+      String fieldName = ((FieldError) error).getField();
+      String errorMessage = error.getDefaultMessage();
+      errores.put(fieldName, errorMessage);
+    });
 
-        problemDetail.setDetail("Falló la validación para el objeto='" + result.getObjectName()
-                + "'. " + "Núm. errores: " + result.getErrorCount());
-
-        Map<String, String> errores = new HashMap<>();
-        result.getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errores.put(fieldName, errorMessage);
-        });
-
-        problemDetail.setProperty("errores", errores);
-        return problemDetail;
-    }
+    problemDetail.setProperty("errores", errores);
+    return problemDetail;
+  }
 }

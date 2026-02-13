@@ -1,0 +1,31 @@
+{% extends "fragments/layout" %}
+
+{% import "fragments/inputField" %}
+
+{% block body %}
+
+<h2>{% if not modoEditar %}Nuevo {% endif %} Álbum</h2>
+<form class="form-horizontal" id="add-album-form" method="post"
+      action="{% if modoEditar %}/admin/albumes/{{albumId}}/edit{% else %}/admin/albumes/new{% endif %}">
+  <input name="{{ csrfParamName }}" type="hidden" value="{{ csrfToken }}">
+  <div class="form-group has-feedback">
+    {{ inputField("album", "Título", "titulo", "text", album.titulo, _context) }}
+    {{ inputField("album", "Año de lanzamiento", "anioLanzamiento", "number", album.anioLanzamiento, _context) }}
+    {{ inputField("album", "Género", "genero", "text", album.genero, _context) }}
+    {{ inputField("album", "Imagen de portada", "imagenPortada", "text", album.imagenPortada, _context) }}
+    {{ inputField("album", "Precio", "precio", "number", album.precio, _context) }}
+    {% if not modoEditar %}
+    {{ inputField("album", "Artista", "artista", "text", album.artista, _context) }}
+    {% endif %}
+  </div>
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button
+        class="btn btn-primary" type="submit">{{ modoEditar ? 'Actualizar Álbum' : 'Añadir Álbum' }}
+      </button>
+    </div>
+  </div>
+</form>
+
+{% endblock %}
+

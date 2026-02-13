@@ -1,8 +1,8 @@
 package org.example.web.controllers;
 
-import org.example.albumes.dto.AlbumCreateDto;
-import org.example.albumes.dto.AlbumResponseDto;
-import org.example.albumes.dto.AlbumUpdateDto;
+import org.example.rest.albumes.dto.AlbumCreateDto;
+import org.example.rest.albumes.dto.AlbumResponseDto;
+import org.example.rest.albumes.dto.AlbumUpdateDto;
 import org.example.rest.albumes.models.Album;
 import org.example.rest.albumes.services.AlbumService;
 import org.example.web.services.I18nService;

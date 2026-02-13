@@ -15,22 +15,22 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    @Value("${api.version}")
-    private String apiVersion;
+  @Value("${api.version}")
+  private String apiVersion;
 
-    // Registra uno por cada tipo de notificación que quieras con su handler y su ruta (endpoint)
-    // Cuidado con la ruta que no se repita
-    // Para conectar con el cliente, el cliente debe hacer una petición de conexión
-    // ws://localhost:3000/ws/v1/albumes
-    @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(webSocketAlbumesHandler(), "/ws/" + apiVersion + "/albumes");
-    }
+  // Registra uno por cada tipo de notificación que quieras con su handler y su ruta (endpoint)
+  // Cuidado con la ruta que no se repita
+  // Para conectar con el cliente, el cliente debe hacer una petición de conexión
+  // ws://localhost:3000/ws/v1/albumes
+  @Override
+  public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+    registry.addHandler(webSocketAlbumesHandler(), "/ws/" + apiVersion + "/albumes");
+  }
 
-    // Cada uno de los handlers como bean para que cada vez que nos atienda
-    @Bean
-    public WebSocketHandler webSocketAlbumesHandler() {
-        return new WebSocketHandler("Albumes");
-    }
+  // Cada uno de los handlers como bean para que cada vez que nos atienda
+  @Bean
+  public WebSocketHandler webSocketAlbumesHandler() {
+    return new WebSocketHandler("Albumes");
+  }
 
 }

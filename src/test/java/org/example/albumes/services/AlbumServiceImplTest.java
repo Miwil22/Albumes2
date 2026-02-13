@@ -8,20 +8,16 @@ import org.example.rest.albumes.repositories.AlbumRepository;
 import org.example.rest.albumes.services.AlbumServiceImpl;
 import org.example.rest.artistas.models.Artista;
 import org.example.rest.artistas.repositories.ArtistasRepository;
-import org.example.config.websockets.WebSocketConfig;
-import org.example.websockets.notifications.mappers.AlbumNotificationMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,12 +29,6 @@ class AlbumServiceImplTest {
     private ArtistasRepository artistasRepository;
     @Mock
     private AlbumMapper albumMapper;
-    @Mock
-    private WebSocketConfig webSocketConfig;
-    @Mock
-    private AlbumNotificationMapper albumNotificationMapper;
-    @Mock
-    private ObjectMapper objectMapper; // Añadido mock de ObjectMapper
 
     @InjectMocks
     private AlbumServiceImpl albumService;
@@ -48,17 +38,17 @@ class AlbumServiceImplTest {
         // Arrange
         AlbumCreateDto createDto = AlbumCreateDto.builder()
                 .titulo("Test Album")
-                .artistaId(1L)
-                .precio(10.0) // Añadido precio para evitar nulos
-                .fechaLanzamiento(java.time.LocalDate.now()) // Añadida fecha
+                .artista("Artista Test") // Cambiado de artistaId a artista (String)
+                .precio(10.0)
+                .fechaLanzamiento(java.time.LocalDate.now())
                 .genero("Rock")
                 .build();
 
-        Artista artista = Artista.builder().id(1L).nombre("Artista").build();
+        Artista artista = Artista.builder().id(1L).nombre("Artista Test").nacionalidad("Spain").build();
         Album album = Album.builder().id(1L).titulo("Test Album").artista(artista).build();
         AlbumResponseDto responseDto = AlbumResponseDto.builder().id(1L).titulo("Test Album").build();
 
-        when(artistasRepository.findById(1L)).thenReturn(Optional.of(artista));
+        when(artistasRepository.findByNombreEqualsIgnoreCase("Artista Test")).thenReturn(Optional.of(artista));
         when(albumMapper.toAlbum(createDto, artista)).thenReturn(album);
         when(albumRepository.save(album)).thenReturn(album);
         when(albumMapper.toAlbumResponseDto(album)).thenReturn(responseDto);
@@ -72,3 +62,4 @@ class AlbumServiceImplTest {
         verify(albumRepository).save(album);
     }
 }
+

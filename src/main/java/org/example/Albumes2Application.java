@@ -8,7 +8,8 @@ import org.springframework.cache.annotation.EnableCaching;
 @SpringBootApplication
 public class Albumes2Application {
 
-    public static void main(String[] args) {
-        SpringApplication.run(Albumes2Application.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(Albumes2Application.class, args);
+  }
+
 }

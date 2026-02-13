@@ -1,45 +1,33 @@
 package org.example.rest.albumes.dto;
 
-import org.example.rest.albumes.validators.GeneroValido;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.*;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+@Builder
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Schema(description = "DTO para crear un álbum")
+@Schema(description = "Album a crear")
 public class AlbumCreateDto {
-    @Schema(description = "Título del álbum", example = "The Black Parade")
-    @NotBlank(message = "El título no puede estar vacío")
-    private String titulo;
-
-    @Schema(description = "Género musical", example = "Rock")
-    @NotBlank(message = "El género no puede estar vacío")
-    @GeneroValido(message = "El género no es válido o no está permitido") // Validador personalizado
-    private String genero;
-
-    @Schema(description = "Fecha de lanzamiento", example = "2006-10-23")
-    @NotNull(message = "La fecha de lanzamiento es obligatoria")
-    @PastOrPresent(message = "La fecha de lanzamiento no puede ser futura")
-    private LocalDate fechaLanzamiento;
-
-    @Schema(description = "Precio del álbum", example = "19.99")
-    @NotNull(message = "El precio es obligatorio")
-    @Min(value = 0, message = "El precio no puede ser negativo")
-    private Double precio;
-
-    @Schema(description = "URL de la portada", example = "https://example.com/cover.jpg")
-    private String portada;
-
-    @Schema(description = "Nombre del artista del álbum", example = "My Chemical Romance")
-    @NotBlank(message = "El nombre del artista no puede estar vacío")
-    private String artista;
+  @NotBlank(message = "El título no puede estar vacío")
+  @Schema(description = "Título del álbum", example = "Sempiternal")
+  private final String titulo;
+  @NotBlank(message = "El género no puede estar vacío")
+  @Schema(description = "Género del álbum", example = "Metalcore")
+  private final String genero;
+  @NotNull(message = "La fecha de lanzamiento es obligatoria")
+  @PastOrPresent(message = "La fecha de lanzamiento no puede ser futura")
+  @Schema(description = "Fecha de lanzamiento del álbum", example = "2013-04-01")
+  private final LocalDate fechaLanzamiento;
+  @NotBlank(message = "El nombre del artista no puede estar vacío")
+  @Schema(description = "Nombre del artista o banda", example = "Bring Me The Horizon")
+  private final String artista;
+  @NotNull(message = "El precio es obligatorio")
+  @Positive(message = "El precio debe ser mayor que 0")
+  @Schema(description = "Precio del álbum", example = "19.99")
+  private final Double precio;
+  @Schema(description = "URL de la imagen de portada", example = "https://example.com/portada.jpg")
+  private final String portada;
 }

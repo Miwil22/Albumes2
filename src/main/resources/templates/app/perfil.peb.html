@@ -1,0 +1,143 @@
+{% extends "fragments/layout" %}
+
+{% block body %}
+
+<div class="container py-4 mt-5 pt-3">
+  <div class="row">
+    <div class="col-12 mb-4">
+      <h2><i class="bi bi-person-circle"></i> Mi Perfil</h2>
+    </div>
+  </div>
+
+  {% if mensaje %}
+  <div class="row">
+    <div class="col-12">
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> {{ mensaje }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- COLUMNA 1: DATOS PERSONALES -->
+    <div class="col-lg-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="bi bi-person-fill"></i> Datos Personales</h5>
+        </div>
+        <div class="card-body">
+          <!-- Avatar principal -->
+          <div class="text-center mb-4">
+            <h4 class="mt-3 fw-bold">{{ usuario.nombre }} {{ usuario.apellidos }}</h4>
+            {% for rol in usuario.roles %}
+            <span class="badge bg-{% if rol == 'ADMIN' %}danger{% elseif rol == 'MODERATOR' %}warning{% else %}secondary{% endif %}">
+              {{ rol }}</span>
+            {% endfor %}
+          </div>
+
+          <!-- Formulario editable -->
+          <form method="post" action="/app/perfil/edit">
+            <input type="hidden" name="{{ csrfParamName }}" value="{{ csrfToken }}"/>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" name="nombre" value="{{ usuario.nombre }}" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Apellidos</label>
+                <input type="text" class="form-control" name="apellidos" value="{{ usuario.apellidos }}" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" value="{{ usuario.email }}" disabled>
+              <small class="text-muted">El email no se puede modificar</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Fecha de Alta</label>
+              <input type="text" class="form-control"
+                     value="{{ usuario.createdAt | formatDateTime }}" disabled>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save"></i> Actualizar Perfil
+            </button>
+            <a href="/public" class="btn btn-secondary">
+              <i class="bi bi-arrow-left"></i> Volver
+            </a>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA 2: ARTISTA -->
+    {% if usuario.artista != null %}
+    <div class="col-lg-4">
+      <div class="card shadow border-primary">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="bi bi-music-note-beamed"></i> Tu perfil como artista</h5>
+        </div>
+        <div class="card-body text-center">
+          <!-- Avatar pequeño -->
+          <div class="mb-3">
+            <img src="{% if usuario.avatar is empty %}https://api.dicebear.com/7.x/avataaars/svg?seed={{ usuario.email }}.png{% else %}{{ usuario.avatar }}{% endif %}"
+                 alt="Avatar artista"
+                 class="rounded-circle border border-2 border-primary"
+                 width="80" height="80"
+                 style="object-fit: cover;">
+          </div>
+
+          <!-- Nombre artista -->
+          <h5 class="fw-bold text-primary mb-1">{{ usuario.artista.nombre }}</h5>
+          <p class="text-muted mb-4">
+            Artista desde {{ usuario.artista.createdAt | formatMonth }} {{ currentYear }}
+          </p>
+
+          <!-- Valoración artista -->
+          <div class="mb-4">
+            <h6 class="mb-2">Valoración del artista:</h6>
+            <div class="mb-2">
+                            <span class="text-warning fs-5">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-half"></i>
+                            </span>
+              <strong class="ms-2 fs-4 text-primary">4.7</strong>
+            </div>
+            <small class="text-muted">(89 opiniones)</small>
+          </div>
+
+          <!-- Estadísticas -->
+          <div class="row text-center">
+            <div class="col-4 border-end">
+              <strong class="d-block text-primary fs-3">{{ usuario.artista.albumes | length }}</strong>
+              <small class="text-muted">Álbumes</small>
+            </div>
+            <div class="col-4">
+              <strong class="d-block text-success fs-3">32</strong>
+              <small class="text-muted">Movimientos</small>
+            </div>
+            <div class="col-4">
+              <strong class="d-block text-success fs-3" id="visitas-count">32</strong>
+              <small class="text-muted">Visitas</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ href('/js/app-perfil.js') }}"></script>
+{% endblock %}
+

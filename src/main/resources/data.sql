@@ -105,30 +105,34 @@ INSERT INTO albumes (titulo, genero, precio, fecha_lanzamiento, artista_id, uuid
 -- =========================================================================
 
 -- ADMIN (Sin artista asociado)
--- Pass: Admin1
+-- Contraseña: Admin1
 INSERT INTO usuarios (nombre, apellidos, username, email, password, created_at, updated_at) VALUES
-    ('Admin', 'Supremo', 'admin', 'admin@albumes.com', 'admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+    ('Admin', 'Admin Admin', 'admin', 'admin@prueba.net',
+     '$2a$10$vPaqZvZkz6jhb7U7k/V/v.5vprfNdOnh4sxi/qpPRkYTzPmFlI9p2', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
-INSERT INTO user_roles (user_id, roles) VALUES (1, 'ADMIN');
 INSERT INTO user_roles (user_id, roles) VALUES (1, 'USER');
+INSERT INTO user_roles (user_id, roles) VALUES (1, 'ADMIN');
 
 -- USER 1: Oli Sykes (Manager de BMTH - ID 1)
--- Pass: User1
+-- Contraseña: User1
 INSERT INTO usuarios (nombre, apellidos, username, email, password, artista_id, created_at, updated_at) VALUES
-    ('Oliver', 'Sykes', 'oli', 'oli@bmth.com', 'Oliver', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+    ('Oliver', 'Sykes User', 'oli', 'oli@prueba.net',
+     '$2a$12$RUq2ScW1Kiizu5K4gKoK4OTz80.DWaruhdyfi2lZCB.KeuXTBh0S.', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO user_roles (user_id, roles) VALUES (2, 'USER');
 
 -- USER 2: Noah Sebastian (Manager de Bad Omens - ID 2)
--- Pass: User1 (reutilizada para facilitar pruebas)
+-- Contraseña: Test1
 INSERT INTO usuarios (nombre, apellidos, username, email, password, artista_id, created_at, updated_at) VALUES
-    ('Noah', 'Sebastian', 'noah', 'noah@badomens.com', 'Noah', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+    ('Noah', 'Sebastian Test', 'noah', 'test@prueba.net',
+     '$2a$10$Pd1yyq2NowcsDf4Cpf/ZXObYFkcycswqHAqBndE1wWJvYwRxlb.Pu', 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO user_roles (user_id, roles) VALUES (3, 'USER');
 
 -- USER 3: Gerard Way (Manager de MCR - ID 3)
--- Pass: User1
+-- Contraseña: Otro1
 INSERT INTO usuarios (nombre, apellidos, username, email, password, artista_id, created_at, updated_at) VALUES
-    ('Gerard', 'Way', 'gerard', 'gerard@mcr.com', 'Gerard', 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+    ('Gerard', 'Way Otro', 'gerard', 'otro@prueba.net',
+     '$2a$12$3Q4.UZbvBMBEvIwwjGEjae/zrIr6S50NusUlBcCNmBd2382eyU0bS', 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO user_roles (user_id, roles) VALUES (4, 'USER');

@@ -35,7 +35,7 @@ public class AlbumesController {
 
         if (usuario.isPresent()) {
             // 2. Buscar los álbumes vinculados a ese usuario (a través de su Artista)
-            albumes = albumService.findByUsuarioId(usuario.get().getId());
+            albumes = albumService.buscarPorUsuarioId(usuario.get().getId());
         }
 
         // 3. Pasar datos a la vista
@@ -47,7 +47,7 @@ public class AlbumesController {
     // Ruta final: /app/misalbumes/{id}
     @GetMapping("/misalbumes/{id}")
     public String getById(@PathVariable Long id, Model model) {
-        Album album = albumService.findById(id).orElse(null);
+        Album album = albumService.buscarPorId(id).orElse(null);
 
 
         model.addAttribute("album", album);

@@ -6,7 +6,6 @@ import org.example.rest.artistas.models.Artista;
 import org.example.rest.artistas.services.ArtistasService;
 import org.example.rest.artistas.exceptions.ArtistaNotFoundException;
 import org.example.rest.artistas.exceptions.ArtistaConflictException;
-import org.example.utils.pagination.PaginationLinksUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -14,14 +13,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean; // Importante: MockBean de Spring Boot 3.4
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,10 +40,9 @@ public class ArtistaRestControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
+    @SuppressWarnings("removal")
     private ArtistasService artistasService;
 
-    @MockBean
-    private PaginationLinksUtils paginationLinksUtils;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -54,7 +51,6 @@ public class ArtistaRestControllerTest {
             .id(1L)
             .nombre("Artista Test")
             .nacionalidad("Testland")
-            .fechaNacimiento(LocalDate.now())
             .build();
 
     @Test
@@ -92,7 +88,7 @@ public class ArtistaRestControllerTest {
     void create_ShouldReturnCreatedArtista() throws Exception {
         ArtistaRequestDto requestDto = ArtistaRequestDto.builder()
                 .nombre("New Artista")
-                .nacionalidad("USA") // IMPORTANTE: Campo obligatorio añadido
+                .nacionalidad("USA")
                 .build();
 
         Artista createdArtista = Artista.builder()
@@ -112,11 +108,9 @@ public class ArtistaRestControllerTest {
 
     @Test
     void create_whenNombreExists_ShouldReturnConflict() throws Exception {
-        // Aunque esperamos conflicto, el JSON debe ser válido (tener nacionalidad)
-        // si no, salta 400 Bad Request antes de llegar al servicio
         ArtistaRequestDto requestDto = ArtistaRequestDto.builder()
                 .nombre("Existing Artista")
-                .nacionalidad("Spain") // IMPORTANTE
+                .nacionalidad("Spain")
                 .build();
 
         Mockito.when(artistasService.save(any(ArtistaRequestDto.class)))
@@ -132,7 +126,7 @@ public class ArtistaRestControllerTest {
     void update_ShouldReturnUpdatedArtista() throws Exception {
         ArtistaRequestDto requestDto = ArtistaRequestDto.builder()
                 .nombre("Updated Artista")
-                .nacionalidad("Spain") // IMPORTANTE
+                .nacionalidad("Spain")
                 .build();
 
         Artista updatedArtista = Artista.builder()
@@ -154,7 +148,7 @@ public class ArtistaRestControllerTest {
     void update_ShouldReturnNotFound() throws Exception {
         ArtistaRequestDto requestDto = ArtistaRequestDto.builder()
                 .nombre("Updated Artista")
-                .nacionalidad("Spain") // IMPORTANTE
+                .nacionalidad("Spain")
                 .build();
 
         Mockito.when(artistasService.update(eq(99L), any(ArtistaRequestDto.class)))
@@ -176,3 +170,4 @@ public class ArtistaRestControllerTest {
         verify(artistasService, times(1)).deleteById(1L);
     }
 }
+

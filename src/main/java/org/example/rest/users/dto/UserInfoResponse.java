@@ -15,19 +15,15 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserInfoResponse {
-    private Long id;
-    private String nombre;
-    private String apellidos;
-    private String username;
-    private String email;
-
-    @Builder.Default
-    private Set<Role> roles = Set.of(Role.USER);
-
-    @Builder.Default
-    private Boolean isDeleted = false;
-
-    // Lista de títulos de álbumes gestionados
-    @Builder.Default
-    private List<String> albumes = new ArrayList<>();
+  private Long id;
+  private String nombre;
+  private String apellidos;
+  private String username;
+  private String email;
+  @Builder.Default
+  private Set<Role> roles = Set.of(Role.USER);
+  @Builder.Default
+  private Boolean isDeleted = false;
+  @Builder.Default
+  private List<String> albumes = new ArrayList<>();
 }

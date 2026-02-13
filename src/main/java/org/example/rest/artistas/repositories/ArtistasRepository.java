@@ -12,23 +12,23 @@ import java.util.Optional;
 
 @Repository
 public interface ArtistasRepository extends JpaRepository<Artista, Long>, JpaSpecificationExecutor<Artista> {
-    // Encontrar por nombre exacto
-    Optional<Artista> findByNombreEqualsIgnoreCase(String nombre);
+  // Encontrar por nombre exacto
+  Optional<Artista> findByNombreEqualsIgnoreCase(String nombre);
 
-    // Artistas por nombre
-    List<Artista> findByNombreContainingIgnoreCase(String nombre);
+  // Artistas por nombre
+  List<Artista> findByNombreContainingIgnoreCase(String nombre);
 
-    // Si están borrados
-    List<Artista> findByIsDeleted(Boolean isDeleted);
+  // Si están borrados
+  List<Artista> findByIsDeleted(Boolean isDeleted);
 
-    // Actualizar el artista con isDeleted a true
-    @Modifying // Para indicar que es una consulta de actualización
-    @Query("UPDATE Artista a SET a.isDeleted = true WHERE a.id = :id")
-    // Consulta de actualización
-    void updateIsDeletedToTrueById(Long id);
+  // Actualizar el artista con isDeleted a true
+  @Modifying // Para indicar que es una consulta de actualización
+  @Query("UPDATE Artista art SET art.isDeleted = true WHERE art.id = :id")
+  // Consulta de actualización
+  void updateIsDeletedToTrueById(Long id);
 
-    // Obtiene si existe un álbum con el id del artista
-    @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Album a WHERE a.artista.id = :id")
-    Boolean existsAlbumById(Long id);
+  // Obtiene si existe un álbum con el id del artista
+  @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM Album a WHERE a.artista.id = :id")
+  Boolean existsAlbumById(Long id);
 
 }
