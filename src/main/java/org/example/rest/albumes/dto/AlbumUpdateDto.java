@@ -26,4 +26,6 @@ public class AlbumUpdateDto {
   private final Double precio;
   @Schema(description = "URL de la portada", example = "https://example.com/nueva_portada.jpg")
   private final String portada;
+  @Schema(description = "Descripción del álbum", example = "Edición deluxe con bonus tracks...")
+  private final String descripcion;
 }

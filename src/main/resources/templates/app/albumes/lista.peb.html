@@ -2,31 +2,49 @@
 
 {% block body %}
 
-<!-- Lista de Albumes -->
-{% if albumes is empty %}
-<div class="alert alert-info text-center">
-  <i class="bi bi-info-circle"></i> No se han encontrado álbumes
+<div class="container mt-4 mb-5">
+  <div class="album-list-header mb-4">
+    <h2 class="text-center" style="color: #efe7d0; font-family: 'Playfair Display', serif; font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 1rem;">
+      <i class="bi bi-vinyl"></i> MI COLECCIÓN
+    </h2>
+  </div>
+
+  <!-- Lista de Albumes -->
+  {% if albumes is empty %}
+  <div class="alert alert-info text-center">
+    <i class="bi bi-info-circle"></i> {{ message('label.album.empty') }}
+  </div>
+  {% else %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>{{ message('label.album.titulo') }}</th>
+          <th>{{ message('label.album.artista') }}</th>
+          <th>{{ message('label.album.genero') }}</th>
+          <th>Precio</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for album in albumes %}
+        <tr>
+          <td>{{ album.id }}</td>
+          <td><a href="/app/misalbumes/{{ album.id }}">{{ album.titulo }}</a></td>
+          <td>{% if album.artista is not null %}{{ album.artista.nombre }}{% else %}Desconocido{% endif %}</td>
+          <td>{{ album.genero }}</td>
+          <td>{{ album.precio }} €</td>
+          <td>
+            <a class="btn-action" href="/app/misalbumes/{{ album.id }}"><i class="bi bi-eye"></i></a>
+            <a class="btn-action" href="/app/misalbumes/{{ album.id }}/editar"><i class="bi bi-pencil"></i></a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
 </div>
-{% else %}
-<table class="table table-striped">
-  <tr>
-    <th>ID</th>
-    <th>Título</th>
-    <th>Artista</th>
-    <th>Género</th>
-    <th>Precio</th>
-  </tr>
-  {% for album in albumes %}
-  <tr>
-    <td>{{ album.id }}</td>
-    <td><a href="/app/misalbumes/{{ album.id }}">{{ album.titulo }} </a></td>
-    <td>{{ album.artista }}</td>
-    <td>{{ album.genero }}</td>
-    <td>{{ album.precio }}</td>
-  </tr>
-  {% endfor %}
-</table>
 
-{% endif %}
 {% endblock %}
-

@@ -4,7 +4,7 @@
 <nav class="mt-4">
   <div class="row align-items-center">
     <div class="col-md-6">
-      <p class="text-muted mb-0">
+      <p class="pager-info mb-0">
         {% set endItem = (page.number + 1) * page.size %}
         {% set finalEndItem = endItem > page.totalElements ? page.totalElements : endItem %}
         Mostrando {{ (page.number * page.size) + 1 }} a {{ finalEndItem }} de {{ page.totalElements }} {{ entity}}

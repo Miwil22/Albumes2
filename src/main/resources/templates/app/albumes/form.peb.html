@@ -8,13 +8,11 @@
       <div class="card">
         <div class="card-header text-center">
           <h3 class="mb-0">
-            <i class="bi bi-{% if modoEditar %}pencil-square{% else %}plus-circle{% endif %}"></i>
-            {% if modoEditar %}EDITAR ÁLBUM{% else %}CREAR NUEVO ÁLBUM{% endif %}
+            <i class="bi bi-pencil-square"></i> EDITAR MI ÁLBUM
           </h3>
         </div>
         <div class="card-body p-4">
-          <form id="add-album-form" method="post"
-                action="{% if modoEditar %}/admin/albumes/{{albumId}}/edit{% else %}/admin/albumes/new{% endif %}">
+          <form id="edit-album-form" method="post" action="/app/misalbumes/{{albumId}}/editar">
             <input name="{{ csrfParamName }}" type="hidden" value="{{ csrfToken }}">
 
             <div class="row">
@@ -40,20 +38,15 @@
                          placeholder="Ej: Metalcore">
                 </div>
 
-                <!-- Artista (Solo al crear) -->
-                {% if not modoEditar %}
+                <!-- Precio -->
                 <div class="mb-4">
-                  <label class="form-label" for="artista">
-                    <i class="bi bi-person"></i> Nombre del Artista/Banda
+                  <label class="form-label" for="precio">
+                    <i class="bi bi-currency-euro"></i> Precio (€)
                   </label>
-                  <input class="form-control" id="artista" name="artista" type="text"
-                         value="{{ album.artista }}" required
-                         placeholder="Ej: Bring Me The Horizon">
-                  <small class="form-text text-muted" style="color: var(--text-muted) !important;">
-                    El artista debe existir en el sistema
-                  </small>
+                  <input class="form-control" id="precio" name="precio" type="number" step="0.01" min="0"
+                         value="{{ album.precio }}" required
+                         placeholder="19.99">
                 </div>
-                {% endif %}
               </div>
 
               <!-- Columna derecha -->
@@ -70,35 +63,25 @@
                   </small>
                 </div>
 
-                <!-- Precio -->
+                <!-- Portada (URL) -->
                 <div class="mb-4">
-                  <label class="form-label" for="precio">
-                    <i class="bi bi-currency-euro"></i> Precio (€)
+                  <label class="form-label" for="portada">
+                    <i class="bi bi-image"></i> URL de la Portada (Opcional)
                   </label>
-                  <input class="form-control" id="precio" name="precio" type="number" step="0.01" min="0"
-                         value="{{ album.precio }}" required
-                         placeholder="19.99">
+                  <input class="form-control" id="portada" name="portada" type="text"
+                         value="{{ album.portada }}"
+                         placeholder="https://ejemplo.com/portada.jpg">
+                  <small class="form-text text-muted" style="color: var(--text-muted) !important;">
+                    Deja en blanco para usar imagen por defecto
+                  </small>
                 </div>
               </div>
-            </div>
-
-            <!-- Portada (URL) - Ancho completo -->
-            <div class="mb-4">
-              <label class="form-label" for="portada">
-                <i class="bi bi-image"></i> URL de la Portada (Opcional)
-              </label>
-              <input class="form-control" id="portada" name="portada" type="text"
-                     value="{{ album.portada }}"
-                     placeholder="https://ejemplo.com/portada.jpg">
-              <small class="form-text text-muted" style="color: var(--text-muted) !important;">
-                Deja en blanco para usar imagen por defecto
-              </small>
             </div>
 
             <!-- Descripción - Ancho completo -->
             <div class="mb-4">
               <label class="form-label" for="descripcion">
-                <i class="bi bi-card-text"></i> {{ message('form.description') }} (Opcional)
+                <i class="bi bi-card-text"></i> Descripción (Opcional)
               </label>
               <textarea class="form-control" id="descripcion" name="descripcion" rows="4"
                         placeholder="Describe el álbum, su contexto, historia, etc.">{{ album.descripcion }}</textarea>
@@ -111,12 +94,11 @@
             <div class="row mt-5">
               <div class="col-md-6 mb-3 mb-md-0">
                 <button class="btn btn-primary btn-lg w-100" type="submit">
-                  <i class="bi bi-{% if modoEditar %}check-circle{% else %}plus-circle{% endif %}"></i>
-                  {{ modoEditar ? 'ACTUALIZAR ÁLBUM' : 'CREAR ÁLBUM' }}
+                  <i class="bi bi-check-circle"></i> ACTUALIZAR ÁLBUM
                 </button>
               </div>
               <div class="col-md-6">
-                <a href="/admin/albumes" class="btn btn-secondary btn-lg w-100">
+                <a href="/app/misalbumes" class="btn btn-secondary btn-lg w-100">
                   <i class="bi bi-x-circle"></i> CANCELAR
                 </a>
               </div>

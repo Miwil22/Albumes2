@@ -51,6 +51,7 @@ CREATE TABLE albumes (
                          precio DOUBLE NOT NULL, -- O FLOAT(53)
                          fecha_lanzamiento DATE NOT NULL,
                          portada VARCHAR(255), -- URL de la imagen
+                         descripcion TEXT, -- Descripción del álbum
                          uuid UUID DEFAULT RANDOM_UUID() NOT NULL UNIQUE,
                          is_deleted BOOLEAN DEFAULT FALSE,
                          artista_id BIGINT NOT NULL,
@@ -74,30 +75,30 @@ INSERT INTO artistas (nombre, nacionalidad, biografia, created_at, updated_at) V
 -- ALBUMES (Asociados por ID de artista)
 
 -- 1. Bring Me The Horizon (ID 1)
-INSERT INTO albumes (titulo, genero, precio, fecha_lanzamiento, artista_id, uuid, created_at, updated_at) VALUES
-                                                                                                              ('Sempiternal', 'Metalcore', 19.99, '2013-04-01', 1, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                                              ('That''s the Spirit', 'Rock Alternativo', 18.50, '2015-09-11', 1, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                                              ('POST HUMAN: NeX GEn', 'Hyperpop/Metal', 21.00, '2024-05-24', 1, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO albumes (titulo, genero, precio, fecha_lanzamiento, portada, descripcion, artista_id, uuid, created_at, updated_at) VALUES
+('Sempiternal', 'Metalcore', 19.99, '2013-04-01', '/images-cover-album/Sempiternal (Expanded Edition)_album_cover.jpg', 'Cuarto álbum de estudio que marcó un punto de inflexión en el sonido de BMTH, incorporando elementos electrónicos y orquestales al metalcore.', 1, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('That''s the Spirit', 'Rock Alternativo', 18.50, '2015-09-11', '/images-cover-album/That''s The Spirit_album_cover.jpg', 'Álbum que consolidó la transición de la banda hacia un sonido más accesible y experimental, alejándose del metalcore tradicional.', 1, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('POST HUMAN: NeX GEn', 'Hyperpop/Metal', 21.00, '2024-05-24', '/images-cover-album/POST HUMAN_ NeX GEn_album_cover.jpg', 'Segundo capítulo de la serie POST HUMAN, fusionando hyperpop, metal y elementos futuristas en una propuesta completamente innovadora.', 1, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 2. Bad Omens (ID 2)
-INSERT INTO albumes (titulo, genero, precio, fecha_lanzamiento, artista_id, uuid, created_at, updated_at) VALUES
-                                                                                                              ('The Death of Peace of Mind', 'Metalcore Alternativo', 20.99, '2022-02-25', 2, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                                              ('Finding God Before God Finds Me', 'Metalcore', 15.99, '2019-08-02', 2, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO albumes (titulo, genero, precio, fecha_lanzamiento, portada, descripcion, artista_id, uuid, created_at, updated_at) VALUES
+('The Death of Peace of Mind', 'Metalcore Alternativo', 20.99, '2022-02-25', '/images-cover-album/THE DEATH OF PEACE OF MIND_track_cover.jpg', 'Tercer álbum conceptual que explora temas oscuros y existenciales con una producción cinemática y atmosférica única.', 2, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('Finding God Before God Finds Me', 'Metalcore', 15.99, '2019-08-02', '/images-cover-album/Finding God Before God Finds Me (Deluxe)_album_cover.jpg', 'Segundo trabajo de estudio que estableció el sonido característico de Bad Omens, mezclando metalcore con elementos progresivos.', 2, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 3. My Chemical Romance (ID 3)
-INSERT INTO albumes (titulo, genero, precio, fecha_lanzamiento, artista_id, uuid, created_at, updated_at) VALUES
-                                                                                                              ('The Black Parade', 'Emo/Rock Opera', 12.99, '2006-10-23', 3, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                                              ('Three Cheers for Sweet Revenge', 'Post-Hardcore', 11.50, '2004-06-08', 3, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO albumes (titulo, genero, precio, fecha_lanzamiento, portada, descripcion, artista_id, uuid, created_at, updated_at) VALUES
+('The Black Parade', 'Emo/Rock Opera', 12.99, '2006-10-23', '/images-cover-album/The Black Parade_album_cover.jpg', 'Obra maestra conceptual que narra la muerte de "The Patient". Un álbum icónico del rock alternativo y emo de los 2000s.', 3, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('Three Cheers for Sweet Revenge', 'Post-Hardcore', 11.50, '2004-06-08', '/images-cover-album/Three Cheers for Sweet Revenge_album_cover.jpg', 'Segundo álbum que catapultó a MCR a la fama internacional con su narrativa de venganza y amor post-mortem.', 3, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 4. Motionless In White (ID 4)
-INSERT INTO albumes (titulo, genero, precio, fecha_lanzamiento, artista_id, uuid, created_at, updated_at) VALUES
-                                                                                                              ('Scoring the End of the World', 'Industrial Metal', 18.99, '2022-06-10', 4, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                                              ('Disguise', 'Nu Metalcore', 16.50, '2019-06-07', 4, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO albumes (titulo, genero, precio, fecha_lanzamiento, portada, descripcion, artista_id, uuid, created_at, updated_at) VALUES
+('Scoring the End of the World', 'Industrial Metal', 18.99, '2022-06-10', '/images-cover-album/Scoring The End Of The World_album_cover.jpg', 'Álbum que fusiona metalcore con influencias industriales y góticas, creando una atmósfera apocalíptica y cinematográfica.', 4, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('Disguise', 'Nu Metalcore', 16.50, '2019-06-07', '/images-cover-album/Disguise_album_cover.jpg', 'Quinto trabajo de estudio que combina nu metal, metalcore y elementos industriales con letras introspectivas.', 4, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- 5. Sleep Token (ID 5)
-INSERT INTO albumes (titulo, genero, precio, fecha_lanzamiento, artista_id, uuid, created_at, updated_at) VALUES
-                                                                                                              ('Take Me Back To Eden', 'Alternative Metal', 24.99, '2023-05-19', 5, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                                                                                                              ('Sundowning', 'Progressive Metal', 14.99, '2019-11-21', 5, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO albumes (titulo, genero, precio, fecha_lanzamiento, portada, descripcion, artista_id, uuid, created_at, updated_at) VALUES
+('Take Me Back To Eden', 'Alternative Metal', 24.99, '2023-05-19', '/images-cover-album/Take Me Back To Eden_album_cover.jpg', 'Tercer álbum de este misterioso colectivo que fusiona metal progresivo con R&B, pop y elementos atmosféricos de forma única.', 5, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('Sundowning', 'Progressive Metal', 14.99, '2019-11-21', '/images-cover-album/Sundowning (Deluxe)_album_cover.jpg', 'Debut de estudio que presentó al mundo la propuesta única de Sleep Token: metal progresivo con influencias de música alternativa y soul.', 5, RANDOM_UUID(), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 
 -- =========================================================================

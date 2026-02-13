@@ -4,22 +4,29 @@
 
 {% block body %}
 
-<div class="row mb-4">
-  <div class="col-md-12">
-    {% include "fragments/messages" %}
+<div class="container mt-4 mb-5">
+  <div class="album-list-header mb-4">
+    <h2 class="text-center" style="color: #efe7d0; font-family: 'Playfair Display', serif; font-size: 2.5rem; letter-spacing: 2px; margin-bottom: 1rem;">
+      <i class="bi bi-collection"></i> ADMINISTRACIÓN DE ÁLBUMES
+    </h2>
   </div>
+
+  <div class="row mb-4">
+    <div class="col-md-12">
+      {% include "fragments/messages" %}
+    </div>
+  </div>
+
+  {% include "fragments/listaAlbumes" %}
+
+  {{ pager("Albumes", page, _context) }}
+
+  <!-- div para el modal -->
+  <div id="placeholder-modal"></div>
 </div>
-
-{% include "fragments/listaAlbumes" %}
-
-{{ pager("Albumes", page, _context) }}
-
-<!-- div para el modal -->
-<div id="placeholder-modal"></div>
 
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ href('/js/app-lista.js') }}"></script>
+<script src="{{ href('/js/app-lista.js') }}?v=20260213-onclick-direct"></script>
 {% endblock %}
-

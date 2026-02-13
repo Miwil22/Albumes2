@@ -37,6 +37,11 @@ public class Album {
   private Double precio;
   @Schema(description = "URL de la portada", example = "https://example.com/cover.jpg")
   private String portada;
+
+  @Column(columnDefinition = "TEXT")
+  @Schema(description = "Descripción del álbum", example = "Álbum conceptual sobre...")
+  private String descripcion;
+
   @Builder.Default
   @Column(updatable = false, nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
   @Schema(description = "Fecha de creación del álbum", example = "2025-01-01T00:00:00.000Z")

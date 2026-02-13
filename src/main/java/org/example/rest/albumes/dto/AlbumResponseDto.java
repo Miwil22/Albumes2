@@ -30,6 +30,8 @@ public class AlbumResponseDto {
   private Double precio;
   @Schema(description = "URL de la portada", example = "https://example.com/portada.jpg")
   private String portada;
+  @Schema(description = "Descripción del álbum", example = "Cuarto álbum de estudio...")
+  private String descripcion;
   @Schema(description = "Fecha de creación del álbum", example = "2025-01-01T00:00:00.000Z")
   private LocalDateTime createdAt;
   @Schema(description = "Fecha de actualización del álbum", example = "2025-01-01T00:00:00.000Z")

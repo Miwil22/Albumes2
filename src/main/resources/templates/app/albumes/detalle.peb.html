@@ -2,17 +2,100 @@
 
 {% block body %}
 
-{% if album is empty %}
-<div class="alert alert-info text-center">
-  <i class="bi bi-info-circle"></i> {{ message('label.album.empty') }}
+<div class="album-detail-container">
+  {% include "fragments/messages" %}
+
+  {% if album is empty %}
+  <div class="alert alert-info text-center">
+    <i class="bi bi-info-circle"></i> {{ message('label.album.empty') }}
+  </div>
+  {% else %}
+
+  <div class="album-detail-card">
+    <!-- Header con título y artista -->
+    <div class="album-header">
+      <h1>{{ album.titulo }}</h1>
+      <p class="artist-name">
+        <i class="bi bi-person-fill"></i>
+        {% if album.artista is not null %}
+          {{ album.artista.nombre }}
+        {% else %}
+          Desconocido
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="album-content">
+      <!-- Columna izquierda: Imagen -->
+      <div class="album-cover-section">
+        <div class="album-cover-wrapper">
+          {% if album.portada is not null and album.portada is not empty %}
+          <img src="{{ album.portada }}" alt="{{ album.titulo }}" />
+          {% else %}
+          <img src="https://via.placeholder.com/400x400/232323/7953a2?text={{ album.titulo | url_encode }}" alt="{{ album.titulo }}" />
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Columna derecha: Información -->
+      <div class="album-info-section">
+        {% if album.descripcion is not null and album.descripcion != '' %}
+        <div class="info-item description-item">
+          <span class="info-label">
+            <i class="bi bi-card-text"></i> Descripción
+          </span>
+          <span class="info-value description-text">{{ album.descripcion }}</span>
+        </div>
+        {% endif %}
+
+        <div class="info-item">
+          <span class="info-label">
+            <i class="bi bi-music-note-beamed"></i> Género
+          </span>
+          <span class="info-value">{{ album.genero }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">
+            <i class="bi bi-cash-coin"></i> Precio
+          </span>
+          <span class="info-value">{{ album.precio }}€</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">
+            <i class="bi bi-calendar-event"></i> Fecha de Lanzamiento
+          </span>
+          <span class="info-value">{{ album.fechaLanzamiento }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">
+            <i class="bi bi-clock-history"></i> Creado el
+          </span>
+          <span class="info-value">{{ album.createdAt }}</span>
+        </div>
+
+        <div class="info-item">
+          <span class="info-label">
+            <i class="bi bi-pencil-square"></i> Actualizado el
+          </span>
+          <span class="info-value">{{ album.updatedAt }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer con acciones -->
+    <div class="album-actions">
+      <a href="/app/misalbumes" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> {{ message('action.back') }}
+      </a>
+    </div>
+  </div>
+
+  {% endif %}
 </div>
-{% else %}
-<h2> {{ message('label.album.detalle') }} {{ album.id }}</h2>
-<ul>
-  <li> {{ message('label.album.titulo') }}: {{ album.titulo }}</li>
-  <li> {{ message('label.album.artista') }}: {{ album.artista }}</li>
-</ul>
-{% endif %}
 
 {% endblock %}
 

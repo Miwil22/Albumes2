@@ -3,23 +3,26 @@
 {% block body %}
 
 <div class="container">
-  <div class="p-5 mb-4 bg-light rounded-3">
-    <h1 class="display-5 fw-bold">Gestion de Albumes</h1>
-    <p class="col-md-8 fs-4">Una aplicacion de ejemplo de Spring MVC con Pebble.</p>
+  <div class="p-5 mb-4 bg-light text-center">
+    <h1 class="display-5 fw-bold glow-effect">WHAT LIES BELOW</h1>
+    <p class="fs-4 mx-auto">Your Collection of Dark Melodies</p>
     {% if isAuthenticated %}
-    <h1 class="display-4">Saludos, {{ username | default('Usuario') }} </h1>
+    <h1 class="display-4">{{ username | default('UNKNOWN') | upper }}</h1>
     {% else %}
-    <h1 class="display-4">Saludos, visitante</h1>
+    <h1 class="display-4">GUEST</h1>
     {% endif %}
-    <p class="text-center">
+    <p class="mt-5">
       {% if isAdmin %}
-      <a class="btn btn-lg btn-primary" href="/admin/albumes">Ir al Panel de Administracion</a>
+      <a class="btn btn-lg btn-primary" href="/admin/albumes">
+        Enter Archive
+      </a>
       {% else %}
-      <a class="btn btn-lg btn-success" href="/app/misalbumes">Comenzar</a>
+      <a class="btn btn-lg btn-primary" href="/app/misalbumes">
+        View Collection
+      </a>
       {% endif %}
     </p>
   </div>
 </div>
 
 {% endblock %}
-

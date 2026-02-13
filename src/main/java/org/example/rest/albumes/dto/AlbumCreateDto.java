@@ -30,4 +30,6 @@ public class AlbumCreateDto {
   private final Double precio;
   @Schema(description = "URL de la imagen de portada", example = "https://example.com/portada.jpg")
   private final String portada;
+  @Schema(description = "Descripción del álbum", example = "Cuarto álbum de estudio de la banda...")
+  private final String descripcion;
 }

@@ -1,21 +1,27 @@
 <!--  Modal para el borrado -->
-<div class="modal fade" id="delete-modal" tabindex="-1">
-  <div class="modal-dialog">
+<div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">{{ deleteTitle | default("Borrar album") }}</h5>
+        <h5 class="modal-title" id="deleteModalLabel">
+          <i class="bi bi-exclamation-triangle"></i> {{ deleteTitle | default("Borrar álbum") }}
+        </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-        <p>{{ deleteMessage | default("Confirma el borrado de este album?") }}</p>
+        <p><i class="bi bi-question-circle"></i> {{ deleteMessage | default("¿Confirmas el borrado de este álbum?") }}</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle"></i> Cancelar
+        </button>
 
-        <form method="post" action="{{ deleteUrl }}" class="d-inline">
+        <form method="post" action="{{ deleteUrl }}" class="d-inline" id="delete-form">
           <input type="hidden" name="{{ csrfParamName }}"  value="{{ csrfToken }}"/>
           <input type="hidden" name="deleteToken" value="{{ deleteToken }}">
-          <button type="submit" class="btn btn-primary">Aceptar</button>
+          <button type="button" class="btn btn-danger" id="btn-confirmar-borrado">
+            <i class="bi bi-trash"></i> Eliminar
+          </button>
         </form>
       </div>
     </div>

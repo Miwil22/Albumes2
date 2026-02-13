@@ -4,27 +4,34 @@
   <i class="bi bi-info-circle"></i> No se han encontrado álbumes
 </div>
 {% else %}
-<table class="table table-striped" id="listaAlbumes">
-  <tr>
-    <th>ID</th>
-    <th>Título</th>
-    <th>Género</th>
-    <th>Precio</th>
-    <th>Artista</th>
-    <th>Acciones</th>
-  </tr>
-  {% for album in page.content %}
-  <tr>
-    <td class="albumId">{{ album.id }}</td>
-    <td>{{ album.titulo }} </td>
-    <td>{{ album.genero }}</td>
-    <td>{{ album.precio  | formatPrice }}</td>
-    <td>{{ album.artista }}</td>
-    <td><a href="/admin/albumes/{{ album.id }}"><i class="bi bi-eye"></i></a>
-      <a href="/admin/albumes/{{ album.id }}/edit"><i class="bi bi-pencil"></i></a>
-      <a class="borrarAlbumLink" href="#"><i class="bi bi-trash"></i></a>
-    </td>
-  </tr>
-  {% endfor %}
-</table>
+<div class="table-wrapper">
+  <table class="table" id="listaAlbumes">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Título</th>
+        <th>Género</th>
+        <th>Precio</th>
+        <th>Artista</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for album in page.content %}
+      <tr>
+        <td class="albumId">{{ album.id }}</td>
+        <td>{{ album.titulo }}</td>
+        <td>{{ album.genero }}</td>
+        <td>{{ album.precio | formatPrice }}</td>
+        <td>{% if album.artista is not null %}{{ album.artista.nombre }}{% else %}Desconocido{% endif %}</td>
+        <td>
+          <a class="btn-action" href="/admin/albumes/{{ album.id }}"><i class="bi bi-eye"></i></a>
+          <a class="btn-action" href="/admin/albumes/{{ album.id }}/edit"><i class="bi bi-pencil"></i></a>
+          <a class="btn-action borrarAlbumLink" href="#"><i class="bi bi-trash"></i></a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endif %}
